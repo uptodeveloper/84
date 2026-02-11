@@ -6,11 +6,8 @@ import {
   ShoppingBag,
   User,
   MessageSquareText,
-  History, // 아이콘 추가
-  ChevronUp,
   MessageCircle, // 아이콘 추가
 } from "lucide-react";
-import IndexPage from "@/pages/index-page";
 
 export default function GlobalLayout() {
   return (
@@ -77,7 +74,6 @@ export default function GlobalLayout() {
         {/* w-full로 꽉 채워서 헤더와 라인을 완벽하게 맞춤 */}
         <main className="w-full">
           <Outlet />
-          <IndexPage />
         </main>
 
         {/* [B] 우측 날개 사이드바 (Absolute Positioning) */}
