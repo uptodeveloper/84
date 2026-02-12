@@ -111,7 +111,7 @@ export default function GlobalLayout() {
       </div>
 
       {/* 3. 플로팅 채팅 버튼 (우측 하단 고정) */}
-      <div className="fixed bottom-30 right-5 z-50">
+      {/* <div className="fixed bottom-30 right-5 z-50">
         <button
           className="bg-primary hover:bg-primary/90 text-white w-14 h-14 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center justify-center"
           onClick={() => alert("채팅 모달 열림!")}
@@ -119,7 +119,7 @@ export default function GlobalLayout() {
           <MessageSquareText className="w-7 h-7" />
           <span className="sr-only">채팅하기</span>
         </button>
-      </div>
+      </div> */}
 
       {/* 4. 푸터 */}
       <footer className="bg-white border-t py-12 mt-auto">
