@@ -36,7 +36,7 @@ export default function GlobalLayout() {
             >
               <MessageCircle className="w-6 h-6" />
 
-              <span className="text-xs font-medium">채팅</span>
+              <span className="text-[10px] font-medium">채팅</span>
             </Link>
 
             <Link

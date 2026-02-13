@@ -4,12 +4,21 @@ import { Link } from "react-router-dom";
 import Logo from "@/assets/logo";
 import { Input } from "@/components/ui/input";
 import { useSignUp } from "@/hooks/mutations/use-sign-up";
+import { generateErrorMessage } from "@/lib/error";
+import { toast } from "sonner";
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const { mutate: signUp } = useSignUp();
+  const { mutate: signUp, isPending: isSignUpPending } = useSignUp({
+    onError: (error) => {
+      const message = generateErrorMessage(error);
+      toast.error(message, {
+        position: "top-center",
+      });
+    },
+  });
 
   const handleSignUpClick = () => {
     if (email.trim() === "") return;
@@ -42,6 +51,7 @@ export default function SignUpPage() {
               </label>
               {/* Shadcn Input이 없다면 그냥 input에 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background..." 넣으면 됨 */}
               <Input
+                disabled={isSignUpPending}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 type="email"
@@ -56,6 +66,7 @@ export default function SignUpPage() {
                 비밀번호
               </label>
               <Input
+                disabled={isSignUpPending}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 type="password"
@@ -79,6 +90,7 @@ export default function SignUpPage() {
 
           {/* 버튼 */}
           <Button
+            disabled={isSignUpPending}
             onClick={handleSignUpClick}
             className="w-full h-11 text-base font-bold bg-primary hover:bg-primary/90"
           >

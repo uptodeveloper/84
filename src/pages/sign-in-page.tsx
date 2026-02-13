@@ -6,14 +6,30 @@ import { Input } from "@/components/ui/input";
 import { useSignInWithPassowrd } from "@/hooks/mutations/sign-in-with-password";
 import { useSignInwithOAuth } from "@/hooks/mutations/sign-in-with-oauth";
 import gitHubLogo from "@/assets/github-mark.svg";
-
+import { toast } from "sonner";
+import { generateErrorMessage } from "@/lib/error";
 export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const { mutate: signInWithPassword } = useSignInWithPassowrd();
+  const { mutate: signInWithPassword, isPending: isSignInWithPasswordPending } =
+    useSignInWithPassowrd({
+      onError: (error) => {
+        const message = generateErrorMessage(error);
+        toast.error(message, {
+          position: "top-center",
+        });
+        setPassword("");
+      },
+    });
 
-  const { mutate: signInWithOAuth } = useSignInwithOAuth();
+  const { mutate: signInWithOAuth, isPending: isSignInWithOAuthPending } =
+    useSignInwithOAuth({
+      onError: (error) => {
+        const message = generateErrorMessage(error);
+        toast.error(message, { position: "top-center" });
+      },
+    });
 
   const handleSignInWithPasswordClick = () => {
     if (email.trim() === " ") return;
@@ -28,6 +44,8 @@ export default function SignInPage() {
   const handleSignInWithGitHubClick = () => {
     signInWithOAuth("github");
   };
+
+  const isPending = isSignInWithPasswordPending || isSignInWithOAuthPending;
 
   return (
     // [1] 배경 및 중앙 정렬 (화면 꽉 채우기 + 회색 배경)
@@ -53,6 +71,7 @@ export default function SignInPage() {
               </label>
               {/* Shadcn Input이 없다면 그냥 input에 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background..." 넣으면 됨 */}
               <Input
+                disabled={isPending}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 type="email"
@@ -67,6 +86,7 @@ export default function SignInPage() {
                 비밀번호
               </label>
               <Input
+                disabled={isPending}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 type="password"
@@ -90,12 +110,14 @@ export default function SignInPage() {
 
           {/* 버튼 */}
           <Button
+            disabled={isPending}
             onClick={handleSignInWithPasswordClick}
             className="w-full h-11 text-base font-bold bg-primary hover:bg-primary/90"
           >
             로그인하기
           </Button>
           <Button
+            disabled={isPending}
             onClick={handleSignInWithGitHubClick}
             className="w-full"
             variant={"outline"}
