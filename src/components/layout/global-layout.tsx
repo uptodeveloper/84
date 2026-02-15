@@ -40,7 +40,7 @@ export default function GlobalLayout() {
             </Link>
 
             <Link
-              to="/sell"
+              to="/item-upload"
               className="flex flex-col items-center gap-1 text-gray-600 hover:text-primary transition-colors"
             >
               <ShoppingBag className="w-6 h-6" />

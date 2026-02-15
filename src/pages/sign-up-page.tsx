@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import Logo from "@/assets/logo";
 import { Input } from "@/components/ui/input";
-import { useSignUp } from "@/hooks/mutations/use-sign-up";
+import { useSignUp } from "@/hooks/mutations/auth/use-sign-up";
 import { generateErrorMessage } from "@/lib/error";
 import { toast } from "sonner";
 

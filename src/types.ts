@@ -9,3 +9,21 @@ export type useMutationCallback = {
   onMutate?: () => void;
   onSettled?: () => void;
 };
+
+export interface ProductParams {
+  title: string;
+  price: number;
+  description: string;
+  category: string;
+  user_id: string | undefined;
+}
+
+export type Image = {
+  file: File;
+  previewUrl: string;
+};
+
+// export type images = {
+//   images: File[];
+//   user_id: string | undefined;
+// };
