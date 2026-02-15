@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { getItem } from "@/api/item";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,10 +11,14 @@ import {
 } from "@/components/ui/carousel";
 import GlobalLoader from "@/components/global-loader";
 import { Heart } from "lucide-react"; // 하트 아이콘 추가
+import { useSession } from "@/store/session";
+import { enterChatRoom } from "@/api/chat";
+import { toast } from "sonner";
 
 export default function ItemDetailPage() {
   const { itemId } = useParams();
   const navigate = useNavigate();
+  const session = useSession(); // 로그인 정보
 
   const {
     data: product,
@@ -25,6 +29,36 @@ export default function ItemDetailPage() {
     queryFn: () => getItem(itemId as string),
     enabled: !!itemId,
   });
+
+  // 채팅방 입장 Mutation
+  const { mutate: startChat, isPending: isStartingChat } = useMutation({
+    mutationFn: enterChatRoom,
+    onSuccess: (roomId) => {
+      // 성공하면 채팅 페이지로 이동 (방 번호 들고 감)
+      navigate(`/chat/${roomId}`);
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error("채팅방 입장에 실패했습니다.");
+    },
+  });
+
+  const handleChatClick = () => {
+    if (!session?.user) return toast.error("로그인이 필요합니다.");
+    if (!product || !product.seller_id) return;
+
+    // 내가 내 물건에 채팅 걸면 안 됨
+    if (session.user.id === product.seller_id) {
+      return toast.error("본인 상품에는 채팅할 수 없습니다.");
+    }
+
+    // API 실행
+    startChat({
+      product_id: product.id,
+      seller_id: product.seller_id,
+      buyer_id: session.user.id,
+    });
+  };
 
   if (isLoading) return <GlobalLoader />;
   if (isError || !product) return <div>상품을 찾을 수 없습니다.</div>;
@@ -126,6 +160,8 @@ export default function ItemDetailPage() {
               <Heart className="w-5 h-5" />
             </Button>
             <Button
+              onClick={handleChatClick}
+              disabled={isStartingChat}
               size="lg"
               className="flex-1 bg-orange-500 hover:bg-orange-600 font-bold text-lg"
             >
@@ -149,7 +185,11 @@ export default function ItemDetailPage() {
           <Button variant="outline" className="w-12">
             ♥
           </Button>
-          <Button className="flex-1 bg-orange-500 font-bold">
+          <Button
+            onClick={handleChatClick}
+            disabled={isStartingChat}
+            className="flex-1 bg-orange-500 font-bold"
+          >
             채팅으로 거래하기
           </Button>
         </div>

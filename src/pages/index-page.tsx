@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getProducts } from "@/api/item"; // 1단계에서 만든 함수
 import { Link } from "react-router-dom"; // 페이지 이동용
 import { Heart } from "lucide-react"; // 하트 아이콘 (없으면 텍스트로 대체 가능)
+import MainSkeleton from "@/components/main-skeleton";
 
 export default function IndexPage() {
   // 1. React Query로 진짜 데이터 가져오기
@@ -11,15 +12,8 @@ export default function IndexPage() {
   });
 
   // 이렇게 바꾸세요 (스켈레톤 대용)
-  if (isLoading)
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-8 mt-20 text-center">
-        <div className="animate-pulse space-y-4">
-          <div className="h-48 bg-gray-200 rounded-xl"></div>
-          <div className="h-6 bg-gray-200 rounded w-1/2 mx-auto"></div>
-        </div>
-      </div>
-    );
+  // 로딩 상태: 실제 레이아웃(배너 + 그리드)을 그대로 흉내 냅니다.
+  if (isLoading) return <MainSkeleton />;
 
   return (
     <div className="space-y-8 px-4 md:px-0">
