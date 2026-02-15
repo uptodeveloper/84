@@ -12,7 +12,7 @@ import {
 import GlobalLoader from "@/components/global-loader";
 import { Heart } from "lucide-react"; // 하트 아이콘 추가
 import { useSession } from "@/store/session";
-import { enterChatRoom } from "@/api/chat";
+import { checkChatRoom, enterChatRoom } from "@/api/chat";
 import { toast } from "sonner";
 
 export default function ItemDetailPage() {
@@ -30,34 +30,49 @@ export default function ItemDetailPage() {
     enabled: !!itemId,
   });
 
-  // 채팅방 입장 Mutation
-  const { mutate: startChat, isPending: isStartingChat } = useMutation({
-    mutationFn: enterChatRoom,
-    onSuccess: (roomId) => {
-      // 성공하면 채팅 페이지로 이동 (방 번호 들고 감)
-      navigate(`/chat/${roomId}`);
-    },
-    onError: (error) => {
-      console.error(error);
-      toast.error("채팅방 입장에 실패했습니다.");
-    },
-  });
+  // // 채팅방 입장 Mutation
+  // const { mutate: startChat, isPending: isStartingChat } = useMutation({
+  //   mutationFn: enterChatRoom,
+  //   onSuccess: (roomId) => {
+  //     // 성공하면 채팅 페이지로 이동 (방 번호 들고 감)
+  //     navigate(`/chat/${roomId}`);
+  //   },
+  //   onError: (error) => {
+  //     console.error(error);
+  //     toast.error("채팅방 입장에 실패했습니다.");
+  //   },
+  // });
 
-  const handleChatClick = () => {
+  // 2. 수정: 채팅하기 버튼 핸들러
+  const handleChatClick = async () => {
     if (!session?.user) return toast.error("로그인이 필요합니다.");
     if (!product || !product.seller_id) return;
-
-    // 내가 내 물건에 채팅 걸면 안 됨
     if (session.user.id === product.seller_id) {
       return toast.error("본인 상품에는 채팅할 수 없습니다.");
     }
 
-    // API 실행
-    startChat({
-      product_id: product.id,
-      seller_id: product.seller_id,
-      buyer_id: session.user.id,
-    });
+    try {
+      // 3. 이미 존재하는 방이 있는지 먼저 확인
+      const existingRoomId = await checkChatRoom({
+        product_id: product.id,
+        buyer_id: session.user.id,
+        seller_id: product.seller_id,
+      });
+
+      if (existingRoomId) {
+        // 방이 있으면 거기로 이동
+        navigate(`/chat/${existingRoomId}`);
+      } else {
+        // ⭐ 핵심: 방이 없으면 DB 만들지 말고 '가짜 방'으로 이동
+        // 정보를 쿼리 파라미터로 다 넘깁니다.
+        navigate(
+          `/chat/new?productId=${product.id}&sellerId=${product.seller_id}`,
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("채팅방 연결 중 오류가 발생했습니다.");
+    }
   };
 
   if (isLoading) return <GlobalLoader />;
@@ -161,7 +176,7 @@ export default function ItemDetailPage() {
             </Button>
             <Button
               onClick={handleChatClick}
-              disabled={isStartingChat}
+              // disabled={isStartingChat}
               size="lg"
               className="flex-1 bg-orange-500 hover:bg-orange-600 font-bold text-lg"
             >
@@ -187,7 +202,7 @@ export default function ItemDetailPage() {
           </Button>
           <Button
             onClick={handleChatClick}
-            disabled={isStartingChat}
+            // disabled={isStartingChat}
             className="flex-1 bg-orange-500 font-bold"
           >
             채팅으로 거래하기

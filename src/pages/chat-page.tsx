@@ -1,17 +1,36 @@
-import { getMessages, getMyChatRooms, sendMessage } from "@/api/chat";
+import {
+  enterChatRoom,
+  getMessages,
+  getMyChatRooms,
+  sendMessage,
+} from "@/api/chat";
 import supabase from "@/lib/supabase";
 import { useSession } from "@/store/session";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 
 export default function ChatPage() {
   const { roomId } = useParams(); // URL에서 방 번호 가져오기
+  const [searchParams] = useSearchParams();
   const session = useSession();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [inputText, setInputText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null); // 자동 스크롤용
+
+  // ⭐ "유령 방"인지 확인 (roomId가 'new'이면 아직 방 안 만들어진 상태)
+  const isGhostRoom = roomId === "new";
+
+  // 유령 방일 때 필요한 정보 (URL 쿼리 파라미터에서 추출)
+  const ghostProductId = searchParams.get("productId");
+  const ghostSellerId = searchParams.get("sellerId");
 
   // 1. 내 채팅방 목록 불러오기
   const { data: chatRooms } = useQuery({
@@ -24,7 +43,7 @@ export default function ChatPage() {
   const { data: messages } = useQuery({
     queryKey: ["messages", roomId],
     queryFn: () => getMessages(roomId!),
-    enabled: !!roomId,
+    enabled: !!roomId && !isGhostRoom,
   });
 
   // 3. 메시지 전송 Mutation
@@ -32,21 +51,64 @@ export default function ChatPage() {
     mutationFn: sendMessage,
     onSuccess: () => {
       setInputText(""); // 입력창 비우기
-      queryClient.invalidateQueries({ queryKey: ["messages", roomId] }); // 목록 새로고침
+      if (roomId && !isGhostRoom) {
+        queryClient.invalidateQueries({ queryKey: ["messages", roomId] });
+      }
     },
   });
 
-  // ⭐ 4. 실시간 구독 (상대방이 말하면 바로 뜸!)
+  // ⭐ 4. 전송 핸들러 (유령 방 로직 포함)
+  const handleSend = async () => {
+    if (!inputText.trim() || !session?.user) return;
 
+    let targetRoomId = roomId;
+
+    try {
+      // [상황 A] 유령 방에서 첫 메시지를 보낼 때 -> 방부터 만든다!
+      if (isGhostRoom) {
+        if (!ghostProductId || !ghostSellerId) return;
+
+        // 1. 방 생성 API 호출
+        const newRoomId = await enterChatRoom({
+          product_id: ghostProductId,
+          buyer_id: session.user.id,
+          seller_id: ghostSellerId,
+        });
+
+        targetRoomId = newRoomId;
+
+        // 2. URL을 진짜 방 번호로 교체 (뒤로가기 방지)
+        navigate(`/chat/${newRoomId}`, { replace: true });
+      }
+
+      // [상황 B] 방이 존재할 때 (또는 방금 만듦) -> 메시지 전송
+      if (targetRoomId && targetRoomId !== "new") {
+        send({
+          room_id: targetRoomId,
+          sender_id: session.user.id,
+          content: inputText,
+        });
+      }
+    } catch (e) {
+      console.error("전송 실패", e);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+      handleSend();
+    }
+  };
+
+  // ⭐ 5. 채팅 실시간 구독 (유령 방일 때는 구독 안 함)
   useEffect(() => {
-    if (!roomId) return;
+    // 유령 방이거나 roomId가 없으면 구독하지 않음
+    if (!roomId || isGhostRoom) return;
 
-    // 1. 채널 생성 (유니크한 이름 사용)
-    const channelName = `chat_room_${roomId}`;
-    const channel = supabase.channel(channelName);
+    console.log(`🔌 구독 시작: ${roomId}`);
 
-    // 2. 이벤트 리스너 설정
-    channel
+    const channel = supabase
+      .channel(`room:${roomId}`)
       .on(
         "postgres_changes",
         {
@@ -60,49 +122,55 @@ export default function ChatPage() {
           queryClient.invalidateQueries({ queryKey: ["messages", roomId] });
         },
       )
-      .subscribe((status) => {
-        // ⭐ 여기가 중요! 상태를 콘솔에 찍어보세요.
-        console.log(`📡 실시간 연결 상태 (${channelName}):`, status);
+      .subscribe();
 
-        if (status === "SUBSCRIBED") {
-          console.log("✅ 연결 성공! 메시지 받을 준비 완료.");
-        }
-        if (status === "CHANNEL_ERROR") {
-          console.error("❌ 연결 에러! (잠시 후 다시 시도해보세요)");
-        }
-        if (status === "TIMED_OUT") {
-          console.error("⏰ 연결 시간 초과! (네트워크 불안정)");
-        }
-      });
-
-    // 3. 클린업 (뒷정리) - 이 부분이 없으면 좀비가 됩니다!
     return () => {
-      console.log(`🧹 채널 정리(구독 해제): ${channelName}`);
+      console.log(`🧹 구독 해제: ${roomId}`);
       supabase.removeChannel(channel);
     };
-  }, [roomId, queryClient]);
+  }, [roomId, isGhostRoom, queryClient]);
 
-  // 5. 스크롤 자동 내리기
+  // ⭐ 5. [신규 추가] 채팅방 목록 실시간 구독 (새 방 생기면 바로 뜸!)
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    console.log("📂 채팅방 목록 구독 시작");
+
+    // 나(User)와 관련된 채팅방이 변경되면 목록을 새로고침하는 채널
+    const channel = supabase
+      .channel(`my_chat_rooms_${session.user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*", // INSERT(새 방), UPDATE(안읽음 등) 모두 감지
+          schema: "public",
+          table: "chat_room",
+          // 주의: 필터가 없으면 남의 방 생성 알림도 올 수 있음 (RLS가 막아주긴 함)
+          // 확실하게 하려면 아래처럼 필터를 걸어야 하는데, OR 조건이 안 되므로
+          // MVP 단계에서는 일단 테이블 전체를 감지하고 쿼리(getMyChatRooms)에서 거르는 방식을 씁니다.
+        },
+        (payload) => {
+          console.log("📂 채팅방 변경 감지:", payload);
+          // 목록 데이터를 다시 불러옵니다.
+          queryClient.invalidateQueries({
+            queryKey: ["chatRooms", session.user.id],
+          });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      console.log("📂 채팅방 목록 구독 해제");
+      supabase.removeChannel(channel);
+    };
+  }, [session?.user?.id, queryClient]);
+
+  // 6. 스크롤 자동 내리기
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
-
-  const handleSend = () => {
-    if (!inputText.trim() || !session?.user || !roomId) return;
-    send({
-      room_id: roomId,
-      sender_id: session.user.id,
-      content: inputText,
-    });
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
-      handleSend();
-    }
-  };
 
   return (
     <div className="max-w-5xl mx-auto px-4 h-[calc(100vh-250px)]">

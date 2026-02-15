@@ -85,3 +85,21 @@ export async function getMyChatRooms(userId: string) {
   if (error) throw error;
   return data;
 }
+
+//방이 이미 존재하는 지 확인
+export const checkChatRoom = async ({
+  product_id,
+  buyer_id,
+  seller_id,
+}: any) => {
+  const { data, error } = await supabase
+    .from("chat_room")
+    .select("id")
+    .eq("product_id", product_id)
+    .eq("buyer_id", buyer_id)
+    .eq("seller_id", seller_id)
+    .maybeSingle(); // 0개 또는 1개
+
+  if (error) throw error;
+  return data?.id || null; // 방 ID 반환하거나 null
+};
