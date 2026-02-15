@@ -5,7 +5,6 @@ import {
   Menu,
   ShoppingBag,
   User,
-  MessageSquareText,
   MessageCircle, // 아이콘 추가
 } from "lucide-react";
 
@@ -53,7 +52,6 @@ export default function GlobalLayout() {
               <User className="w-6 h-6" />
               <span className="text-[10px] font-medium">내상점</span>
             </Link>
-            {/* 채팅 버튼은 헤더에서 뺐음 (플로팅 버튼이 있으니까) */}
           </div>
         </div>
 
@@ -76,23 +74,23 @@ export default function GlobalLayout() {
           <Outlet />
         </main>
 
-        {/* [B] 우측 날개 사이드바 (Absolute Positioning) */}
+        {/* [B] 우측 날개 사이드바 (기능은 나중에) (Absolute Positioning) */}
         {/* 설명: 컨테이너의 오른쪽 끝(right-0)에서 바깥으로 100% 이동(translate-x-full) + 여백(ml-4) */}
         {/* hidden 2xl:block -> 화면이 좁으면(노트북 등) 본문을 가리니까 숨김. 넓은 화면(데스크탑)에서만 보임 */}
-
+        {/* 
         <aside className="hidden xl:block absolute top-5 right-0 translate-x-full ml-6 w-24 h-full">
           <div className="sticky top-30 flex flex-col gap-3">
-            {/* 최근 본 상품 박스 */}
+            최근 본 상품 박스
             <div className="bg-white border border-gray-200 rounded-md shadow-sm p-2 flex flex-col items-center gap-2">
               <span className="text-[11px] font-bold text-gray-800 py-1">
                 최근본상품
               </span>
 
-              {/* 점선 구분선 */}
+              점선 구분선
               <div className="w-full border-t border-dashed border-gray-300"></div>
 
-              {/* 상품 썸네일 (더미) */}
-              {/* 이미지 없을 땐 회색 박스 */}
+              상품 썸네일 (더미)
+              이미지 없을 땐 회색 박스
               <div className="w-full aspect-square bg-gray-100 rounded text-[10px] flex items-center justify-center text-gray-400">
                 상품1
               </div>
@@ -107,7 +105,7 @@ export default function GlobalLayout() {
               </button>
             </div>
           </div>
-        </aside>
+        </aside> */}
       </div>
 
       {/* 3. 플로팅 채팅 버튼 (우측 하단 고정) */}

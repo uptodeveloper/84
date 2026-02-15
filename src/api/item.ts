@@ -99,3 +99,27 @@ export async function deleteItem(id: string) {
   const { error } = await supabase.from("products").delete().eq("id", id);
   if (error) throw error;
 }
+
+// 상품 1개 가져오기 (Read)
+export async function getItem(id: string) {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*") // 모든 컬럼 다 가져와
+    .eq("id", id) // 내 ID랑 똑같은 놈만
+    .single(); // 하나만 가져와
+
+  if (error) throw error;
+  return data;
+}
+
+
+// 전체 상품 리스트 가져오기 (최신순)
+export async function getProducts() {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .order("created_at", { ascending: false }); // 최신 등록순 정렬
+
+  if (error) throw error;
+  return data;
+}
