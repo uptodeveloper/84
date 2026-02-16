@@ -11,7 +11,6 @@ export default function IndexPage() {
     queryFn: getProducts,
   });
 
-  // 이렇게 바꾸세요 (스켈레톤 대용)
   // 로딩 상태: 실제 레이아웃(배너 + 그리드)을 그대로 흉내 냅니다.
   if (isLoading) return <MainSkeleton />;
 

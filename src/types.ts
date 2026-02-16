@@ -15,7 +15,7 @@ export interface ProductParams {
   price: number;
   description: string;
   category: string;
-  user_id: string | undefined;
+  seller_id: string | undefined;
 }
 
 export type Image = {
@@ -23,7 +23,15 @@ export type Image = {
   previewUrl: string;
 };
 
-// export type images = {
-//   images: File[];
-//   user_id: string | undefined;
-// };
+export interface ChatRoomParams {
+  product_id: string;
+  seller_id: string;
+  buyer_id: string;
+}
+
+// 이미지 관리를 위한 타입 정의
+export interface ImageItem {
+  id: string; // 고유 ID (삭제 시 구별용)
+  url: string; // 미리보기용 URL
+  file?: File; // 새 파일이면 있고, 기존 이미지면 없음
+}

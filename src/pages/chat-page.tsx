@@ -44,6 +44,9 @@ export default function ChatPage() {
     queryKey: ["messages", roomId],
     queryFn: () => getMessages(roomId!),
     enabled: !!roomId && !isGhostRoom,
+    refetchOnWindowFocus: true, // 탭 갔다 오면 최신 데이터 다시 긁어오기 (누락 방지)
+    refetchOnReconnect: true, // 인터넷 끊겼다 붙으면 다시 긁어오기
+    staleTime: 0, // 항상 최신 상태 유지
   });
 
   // 3. 메시지 전송 Mutation

@@ -9,6 +9,7 @@ import GuestOnlyLayout from "./components/layout/guest-only-layout";
 import MemberOnlyLayout from "./components/layout/member-only-layout";
 import ItemCreatePage from "./pages/item-create-page";
 import ChatPage from "./pages/chat-page";
+import MyPage from "./pages/my-page";
 
 export default function RootRoute() {
   return (
@@ -22,10 +23,12 @@ export default function RootRoute() {
         <Route path="/item/:itemId" element={<ItemDetailPage />} />
 
         <Route element={<MemberOnlyLayout />}>
-          <Route path="/porfile/:userId" element={<ProfileDetailPage />} />
+          <Route path="/profile/:userId" element={<ProfileDetailPage />} />
           <Route path="/item-upload" element={<ItemCreatePage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/chat/:roomId" element={<ChatPage />} />
+          <Route path="/item/edit/:itemId" element={<ItemCreatePage />} />
+          <Route path="/my" element={<MyPage />} />
         </Route>
         <Route path="*" element={<Navigate to={"/"} />} />
       </Route>
