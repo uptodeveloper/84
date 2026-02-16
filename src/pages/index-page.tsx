@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getProducts } from "@/api/item"; // 1단계에서 만든 함수
 import { Link, useSearchParams } from "react-router-dom"; // 페이지 이동용
-import { Heart } from "lucide-react"; // 하트 아이콘 (없으면 텍스트로 대체 가능)
+// import { Heart } from "lucide-react"; // 하트 아이콘 (없으면 텍스트로 대체 가능)
 import MainSkeleton from "@/components/main-skeleton";
 
 export default function IndexPage() {
@@ -42,7 +42,7 @@ export default function IndexPage() {
               className="flex flex-col gap-2 group cursor-pointer"
             >
               {/* 이미지 영역 */}
-              <div className="aspect-[3/4] bg-gray-200 rounded-md overflow-hidden relative border border-gray-100">
+              <div className="aspect-3/4 bg-gray-200 rounded-md overflow-hidden relative border border-gray-100">
                 {/* 이미지가 있으면 첫 번째꺼 보여주고, 없으면 회색 박스 */}
                 {product.image && product.image.length > 0 ? (
                   <img

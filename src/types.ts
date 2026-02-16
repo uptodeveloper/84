@@ -16,6 +16,7 @@ export interface ProductParams {
   description: string;
   category: string;
   seller_id: string | undefined;
+  image?: string[]; //
 }
 
 export type Image = {

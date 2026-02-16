@@ -11,6 +11,7 @@ export async function createItem({
   description,
   category,
   seller_id,
+  image,
 }: ProductParams) {
   const { data, error } = await supabase
     .from("products")
@@ -21,7 +22,7 @@ export async function createItem({
       category,
       seller_id: seller_id,
       status: "FOR_SALE",
-      image: [],
+      image,
     })
     .select()
     .single();
