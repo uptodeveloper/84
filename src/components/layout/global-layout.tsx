@@ -1,5 +1,5 @@
 import Logo from "@/assets/logo";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import {
   Search,
   Menu,
@@ -7,8 +7,20 @@ import {
   User,
   MessageCircle, // 아이콘 추가
 } from "lucide-react";
+import { useState } from "react";
 
 export default function GlobalLayout() {
+  const navigate = useNavigate(); // 👈 페이지 이동 훅
+  const [keyword, setKeyword] = useState(""); // 👈 입력값 상태
+
+  // 검색 핸들러
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      // 엔터 치면 메인 페이지로 이동하면서 쿼리 파라미터 전달
+      // 예: /?q=노트북
+      navigate(`/?q=${keyword}`);
+    }
+  };
   return (
     <div className="min-h-screen flex flex-col relative bg-gray-50">
       {/* 1. 헤더 */}
@@ -21,6 +33,9 @@ export default function GlobalLayout() {
 
           <div className="flex-1 max-w-lg relative">
             <input
+              value={keyword} // 👈 연결
+              onChange={(e) => setKeyword(e.target.value)} // 👈 연결
+              onKeyDown={handleSearch} // 👈 연결
               type="text"
               placeholder="상점명, 물품명 등을 검색해 보세요!"
               className="w-full h-10 pl-4 pr-10 border-2 border-primary/20 rounded-md focus:outline-none focus:border-primary transition-colors text-sm"
@@ -54,7 +69,7 @@ export default function GlobalLayout() {
             </Link>
           </div>
         </div>
-
+        {/* next dev
         <div className="border-t">
           <div className="max-w-screen-xl mx-auto px-4 h-10 flex items-center gap-6">
             <button className="flex items-center gap-2 text-sm font-bold text-gray-700 hover:text-primary">
@@ -62,7 +77,7 @@ export default function GlobalLayout() {
               카테고리
             </button>
           </div>
-        </div>
+        </div> */}
       </header>
 
       {/* 2. 메인 컨텐츠 (여기가 핵심!) */}

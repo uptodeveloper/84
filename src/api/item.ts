@@ -116,13 +116,26 @@ export async function getItem(id: string) {
 }
 
 // -----------------------------------------------------------------------
-// 6. [조회] 전체 상품 리스트 (홈 화면용)
+// 6. [조회] 전체 상품 리스트 (검색 + 카테고리 필터 추가)
 // -----------------------------------------------------------------------
-export async function getProducts() {
-  const { data, error } = await supabase
+export async function getProducts(term?: string, category?: string) {
+  // 1. 기본 쿼리 생성 (최신순 정렬)
+  let query = supabase
     .from("products")
     .select("*")
     .order("created_at", { ascending: false });
+
+  // 2. 검색어가 있으면? (제목에 포함된 것 찾기, ilike = 대소문자 무시)
+  if (term) {
+    query = query.ilike("title", `%${term}%`);
+  }
+
+  // 3. 카테고리가 선택되었으면? (단, '전체'가 아닐 때만)
+  if (category && category !== "전체") {
+    query = query.eq("category", category);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
   return data;

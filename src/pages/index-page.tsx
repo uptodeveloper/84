@@ -1,14 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { getProducts } from "@/api/item"; // 1단계에서 만든 함수
-import { Link } from "react-router-dom"; // 페이지 이동용
+import { Link, useSearchParams } from "react-router-dom"; // 페이지 이동용
 import { Heart } from "lucide-react"; // 하트 아이콘 (없으면 텍스트로 대체 가능)
 import MainSkeleton from "@/components/main-skeleton";
 
 export default function IndexPage() {
-  // 1. React Query로 진짜 데이터 가져오기
+  const [searchParams] = useSearchParams();
+  const searchTerm = searchParams.get("q") || ""; // URL에서 'q' 값 꺼내기 (없으면 빈 문자열)
+  const category = searchParams.get("category") || "전체"; // 카테고리도 URL로 관리 가능
+
+  // 1. React Query에 검색어(searchTerm) 전달
   const { data: products, isLoading } = useQuery({
-    queryKey: ["products"],
-    queryFn: getProducts,
+    queryKey: ["products", searchTerm, category], // 키에 검색어 포함 (바뀌면 재검색)
+    queryFn: () => getProducts(searchTerm, category), // API 호출
   });
 
   // 로딩 상태: 실제 레이아웃(배너 + 그리드)을 그대로 흉내 냅니다.
