@@ -119,24 +119,34 @@ export async function getItem(id: string) {
 // -----------------------------------------------------------------------
 // 6. [조회] 전체 상품 리스트 (검색 + 카테고리 필터 추가)
 // -----------------------------------------------------------------------
-export async function getProducts(term?: string, category?: string) {
-  // 1. 기본 쿼리 생성 (최신순 정렬)
+export async function getProducts({
+  term,
+  category,
+  from,
+  to,
+}: {
+  term?: string;
+  category?: string;
+  from: number;
+  to: number;
+}) {
+  // 1. 기본 쿼리 (range 빼세요!)
   let query = supabase
     .from("products")
     .select("*")
     .order("created_at", { ascending: false });
 
-  // 2. 검색어가 있으면? (제목에 포함된 것 찾기, ilike = 대소문자 무시)
+  // 2. 필터링 먼저 적용
   if (term) {
     query = query.ilike("title", `%${term}%`);
   }
 
-  // 3. 카테고리가 선택되었으면? (단, '전체'가 아닐 때만)
   if (category && category !== "전체") {
     query = query.eq("category", category);
   }
 
-  const { data, error } = await query;
+  // 3. ⭐ 마지막에 자르기 (여기가 안전지대)
+  const { data, error } = await query.range(from, to);
 
   if (error) throw error;
   return data;
@@ -155,3 +165,15 @@ export async function getMyProducts(userId: string) {
   if (error) throw error;
   return data;
 }
+
+// export async function fetchItem({ from, to }: { from: number; to: number }) {
+//   const { data, error } = await supabase
+//     .from("products")
+//     .select("*")
+//     .order("created_at", { ascending: false })
+//     .range(from, to);
+
+//   if (error) throw error;
+
+//   return data;
+// }

@@ -15,7 +15,7 @@ export default function MainSkeleton() {
           {Array.from({ length: 10 }).map((_, i) => (
             <div key={i} className="flex flex-col gap-2">
               {/* 이미지 영역 (3:4 비율 유지) */}
-              <div className="aspect-[3/4] bg-gray-200 rounded-md animate-pulse" />
+              <div className="aspect-3/4 bg-gray-200 rounded-md animate-pulse" />
 
               {/* 텍스트 영역 (제목 두 줄 + 가격 한 줄) */}
               <div className="space-y-2 mt-1">
