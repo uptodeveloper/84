@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from "react-router-dom"; // 페이지 이동용
+import { useSearchParams } from "react-router-dom"; // 페이지 이동용
 import MainSkeleton from "@/components/main-skeleton";
 import { useInView } from "react-intersection-observer";
 import { useEffect } from "react";

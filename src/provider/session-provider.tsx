@@ -8,7 +8,7 @@ export default function SessionProvider({ children }: { children: ReactNode }) {
   const isSessionLoaded = useIsSeesionLoaded();
 
   useEffect(() => {
-    supabase.auth.onAuthStateChange((event, session) => {
+    supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
   }, []);

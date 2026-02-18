@@ -36,7 +36,7 @@ export function useProductLike(productId: string, userId: string | null) {
     },
 
     // 에러 발생 시 롤백
-    onError: (err, variables, context) => {
+    onError: (err, _variables, context) => {
       if (context?.previousLike !== undefined) {
         queryClient.setQueryData(queryKey, context.previousLike);
       }

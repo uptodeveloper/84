@@ -29,7 +29,7 @@ export default function ItemCreatePage() {
   const [isLoading, setIsLoading] = useState(false);
 
   // 1. [수정 모드] 데이터 불러오기
-  const { data: existingProduct, isLoading: isFetching } = useQuery({
+  const { data: existingProduct } = useQuery({
     queryKey: ["product", itemId],
     queryFn: () => getItem(itemId!),
     enabled: isEditMode,

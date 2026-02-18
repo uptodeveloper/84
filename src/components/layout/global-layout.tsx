@@ -2,7 +2,6 @@ import Logo from "@/assets/logo";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import {
   Search,
-  Menu,
   ShoppingBag,
   User,
   MessageCircle, // 아이콘 추가

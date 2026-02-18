@@ -48,7 +48,7 @@ export function useUpdateItemStatus(itemId: string) {
     },
 
     // 🟢 2. 에러 발생 시 롤백 (onError)
-    onError: (err, newStatus, context) => {
+    onError: (_err, _newStatus, context) => {
       toast.error("상태 변경에 실패했습니다. 되돌립니다.");
       // onMutate에서 리턴한 previousData로 덮어쓰기
       if (context?.previousData) {
