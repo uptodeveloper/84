@@ -1,17 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
-import { getProducts } from "@/api/item"; // 1단계에서 만든 함수
 import { Link, useSearchParams } from "react-router-dom"; // 페이지 이동용
-// import { Heart } from "lucide-react"; // 하트 아이콘 (없으면 텍스트로 대체 가능)
 import MainSkeleton from "@/components/main-skeleton";
 import { useInView } from "react-intersection-observer";
 import { useEffect } from "react";
-import { useInfiniteItemData } from "@/hooks/queries/use-infinite-item-data";
+import { useInfiniteItemData } from "@/hooks/queries/item/use-infinite-item-data";
+import { useSession } from "@/store/session";
+import ItemCard from "@/components/item-card";
 
 export default function IndexPage() {
   const [searchParams] = useSearchParams();
   const searchTerm = searchParams.get("q") || ""; // URL에서 'q' 값 꺼내기 (없으면 빈 문자열)
   const category = searchParams.get("category") || "전체"; // 카테고리도 URL로 관리 가능
   const { ref, inView } = useInView();
+  // 🟢 유저 정보 가져오기 (ItemCard에 넘겨줘야 함)
+  const session = useSession();
+  const userId = session?.user?.id || null;
 
   // 2. 무한 스크롤 훅 사용
   const {
@@ -42,57 +44,15 @@ export default function IndexPage() {
 
         {/* 그리드: 모바일 2열 -> 태블릿 3열 -> PC 5열 */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-8 md:gap-x-6 md:gap-y-10">
-          {/* 2. 진짜 데이터 뿌리기 (products가 없으면 빈 배열) */}
           {items?.pages.map((page) =>
             page?.map((product) => (
-              <Link
+              // 🟢 [핵심] 복잡한 코드 다 지우고 이거 하나면 끝!
+              <ItemCard
                 key={product.id}
-                to={`/item/${product.id}`}
-                className="flex flex-col gap-2 group cursor-pointer"
-              >
-                {/* 이미지 영역 */}
-                <div className="aspect-3/4 bg-gray-200 rounded-md overflow-hidden relative border border-gray-100">
-                  {/* 이미지가 있으면 첫 번째꺼 보여주고, 없으면 회색 박스 */}
-                  {product.image && product.image.length > 0 ? (
-                    <img
-                      src={product.image[0]} // 👈 배열의 첫 번째 사진(썸네일)
-                      alt={product.title}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-                      이미지 없음
-                    </div>
-                  )}
-
-                  {/* 찜 버튼 (기능은 나중에) */}
-                  {/* <button className="absolute bottom-2 right-2 p-1.5 bg-black/20 hover:bg-black/40 rounded-full text-white transition">
-                  <Heart size={16} fill="none" />
-                </button> */}
-
-                  {/* 판매 완료 오버레이 */}
-                  {product.status === "SOLD_OUT" && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-bold text-lg">
-                      판매완료
-                    </div>
-                  )}
-                </div>
-
-                {/* 텍스트 정보 */}
-                <div className="px-1">
-                  <h4 className="font-medium text-sm line-clamp-2 h-10 leading-snug">
-                    {product.title}
-                  </h4>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="font-bold text-base">
-                      {Number(product.price).toLocaleString()}원{" "}
-                      {/* 👈 쉼표 자동 추가 */}
-                    </span>
-                    {/* 시간은 '방금 전' 같은 라이브러리 쓰거나 일단 텍스트로 */}
-                    <span className="text-xs text-gray-400">방금 전</span>
-                  </div>
-                </div>
-              </Link>
+                item={product}
+                userId={userId}
+                // showLikeButton={false} // 생략하면 기본값 false (하트 안 보임)
+              />
             )),
           )}
         </div>

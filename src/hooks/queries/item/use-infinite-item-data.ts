@@ -5,7 +5,7 @@ const PAGE_SIZE = 5;
 
 export function useInfiniteItemData(term: string, category: string) {
   return useInfiniteQuery({
-    queryKey: ["item-list", term, category],
+    queryKey: ["products", "list", term, category],
     queryFn: async ({ pageParam }) => {
       const from = pageParam * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;

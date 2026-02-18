@@ -13,18 +13,33 @@ import { Heart } from "lucide-react";
 import { useSession } from "@/store/session";
 import { checkChatRoom } from "@/api/chat";
 import { toast } from "sonner";
+import { useProductLike } from "@/hooks/queries/like/use-item-like";
+import { useUpdateItemStatus } from "@/hooks/mutations/item/use-update-status";
 
 export default function ItemDetailPage() {
   const { itemId } = useParams();
   const navigate = useNavigate();
   const session = useSession(); // 로그인 정보
+  const { mutate: updateStatus } = useUpdateItemStatus(itemId as string); // 👈 훅 사용
+
+  // 🟢 [추가] 찜 훅 사용 (itemId와 userId 전달)
+  const userId = session?.user?.id || null;
+  const { isLiked, toggleLike } = useProductLike(itemId as string, userId);
+  // 🟢 [추가] 찜 버튼 클릭 핸들러
+  const handleLike = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 버블링 방지
+    if (!userId) {
+      return toast.error("로그인이 필요합니다."); // sonner 토스트 사용
+    }
+    toggleLike();
+  };
 
   const {
     data: product,
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["product", itemId],
+    queryKey: ["products", "detail", itemId],
     queryFn: () => getItem(itemId as string),
     enabled: !!itemId,
   });
@@ -173,8 +188,8 @@ export default function ItemDetailPage() {
               <span className="bg-gray-100 px-2 py-1 rounded-md text-xs font-medium">
                 {product.category || "기타"}
               </span>
-              <span>·</span>
-              <span>1분 전</span>
+              {/* <span>·</span>
+              <span>1분 전</span> */}
             </div>
 
             <hr className="border-gray-100 my-6" />
@@ -194,33 +209,59 @@ export default function ItemDetailPage() {
             {isMyProduct ? (
               // 🟢 주인일 때: 수정 / 삭제
               <>
-                <Button
-                  variant="outline"
-                  onClick={handleEdit}
-                  className="flex-1 font-bold"
-                >
+                {/* 상태 변경 셀렉트 박스 (간단하게 버튼으로 구현) */}
+                {product.status === "SOLD_OUT" ? (
+                  <Button
+                    onClick={() => updateStatus("FOR_SALE")}
+                    className="flex-1 bg-green-600 hover:bg-green-700 font-bold"
+                  >
+                    판매중으로 변경
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => updateStatus("SOLD_OUT")}
+                    className="flex-1 bg-gray-800 hover:bg-black font-bold"
+                  >
+                    판매 완료 처리
+                  </Button>
+                )}
+
+                <Button variant="outline" onClick={handleEdit}>
                   수정
                 </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleDelete}
-                  className="flex-1 font-bold"
-                >
+                <Button variant="destructive" onClick={handleDelete}>
                   삭제
                 </Button>
               </>
             ) : (
               // 🔵 손님일 때: 찜 / 채팅
               <>
-                <Button variant="outline" size="lg" className="w-14 px-0">
-                  <Heart className="w-5 h-5" />
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-14 px-0"
+                  onClick={handleLike} // 👈 클릭 이벤트 연결
+                >
+                  {/* 찜 상태에 따라 빨간색 채우기 */}
+                  <Heart
+                    className={`w-6 h-6 transition-colors ${
+                      isLiked ? "fill-red-500 text-red-500" : "text-gray-400"
+                    }`}
+                  />
                 </Button>
                 <Button
                   onClick={handleChatClick}
                   size="lg"
-                  className="flex-1 bg-orange-500 hover:bg-orange-600 font-bold text-lg"
+                  disabled={product.status === "SOLD_OUT"} // 👈 버튼 잠금
+                  className={`flex-1 font-bold text-lg ${
+                    product.status === "SOLD_OUT"
+                      ? "bg-gray-300 cursor-not-allowed text-gray-500" // 회색 처리
+                      : "bg-orange-500 hover:bg-orange-600"
+                  }`}
                 >
-                  채팅하기
+                  {product.status === "SOLD_OUT"
+                    ? "거래가 완료된 상품입니다"
+                    : "채팅하기"}
                 </Button>
               </>
             )}
@@ -238,30 +279,48 @@ export default function ItemDetailPage() {
 
       {/* [모바일 전용] 하단 고정 버튼 */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t md:hidden z-50">
-        <div className="flex gap-3">
+        <div className="flex justify-center  gap-3">
           {isMyProduct ? (
-            // 🟢 주인일 때 (모바일)
+            // 🟢 주인일 때: 수정 / 삭제
             <>
-              <Button
-                variant="outline"
-                onClick={handleEdit}
-                className="flex-1 font-bold"
-              >
+              {/* 상태 변경 셀렉트 박스 (간단하게 버튼으로 구현) */}
+              {product.status === "SOLD_OUT" ? (
+                <Button
+                  onClick={() => updateStatus("FOR_SALE")}
+                  className=" bg-green-600 hover:bg-green-700 font-bold"
+                >
+                  판매중으로 변경
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => updateStatus("SOLD_OUT")}
+                  className=" bg-gray-800 hover:bg-black font-bold"
+                >
+                  판매 완료 처리
+                </Button>
+              )}
+
+              <Button variant="outline" onClick={handleEdit}>
                 수정
               </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                className="flex-1 font-bold"
-              >
+              <Button variant="destructive" onClick={handleDelete}>
                 삭제
               </Button>
             </>
           ) : (
             // 🔵 손님일 때 (모바일)
             <>
-              <Button variant="outline" className="w-12">
-                ♥
+              <Button
+                variant="outline"
+                className="w-14 px-0" // w-12 -> w-14로 통일
+                onClick={handleLike} // 👈 클릭 이벤트 연결
+              >
+                {/* PC와 동일한 로직 적용 */}
+                <Heart
+                  className={`w-5 h-5 transition-colors ${
+                    isLiked ? "fill-red-500 text-red-500" : "text-gray-400"
+                  }`}
+                />
               </Button>
               <Button
                 onClick={handleChatClick}

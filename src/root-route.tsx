@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import SignInPage from "./pages/sign-in-page";
 import SignUpPage from "./pages/sign-up-page";
 import ItemDetailPage from "./pages/item-detail-page";
-import ProfileDetailPage from "./pages/profile-detail-page";
+// import ProfileDetailPage from "./pages/profile-detail-page";
 import GlobalLayout from "./components/layout/global-layout";
 import IndexPage from "./pages/index-page";
 import GuestOnlyLayout from "./components/layout/guest-only-layout";
@@ -23,7 +23,7 @@ export default function RootRoute() {
         <Route path="/item/:itemId" element={<ItemDetailPage />} />
 
         <Route element={<MemberOnlyLayout />}>
-          <Route path="/profile/:userId" element={<ProfileDetailPage />} />
+          {/* <Route path="/profile/:userId" element={<ProfileDetailPage />} /> */}
           <Route path="/item-upload" element={<ItemCreatePage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/chat/:roomId" element={<ChatPage />} />

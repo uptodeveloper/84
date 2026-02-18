@@ -166,14 +166,39 @@ export async function getMyProducts(userId: string) {
   return data;
 }
 
-// export async function fetchItem({ from, to }: { from: number; to: number }) {
-//   const { data, error } = await supabase
-//     .from("products")
-//     .select("*")
-//     .order("created_at", { ascending: false })
-//     .range(from, to);
+export async function getLikedProducts(userId: string) {
+  const { data, error } = await supabase
+    .from("likes")
+    .select(
+      `
+      product_id,
+      products (*) 
+    `,
+    ) // likes 테이블과 연결된 products 테이블의 모든 정보를 가져와라
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false }); // 최신 찜 순서대로
 
-//   if (error) throw error;
+  if (error) throw error;
 
-//   return data;
-// }
+  // 데이터가 [{ products: { id: 1, title: ... } }, { products: { ... } }] 형태로 옴
+  // 이걸 쓰기 편하게 [{ id: 1, title: ... }, { ... }] 형태로 평탄화(Flat) 해줌
+  return data.map((item) => item.products);
+}
+
+// 상품 상태 변경 ('FOR_SALE' <-> 'SOLD_OUT')
+export async function updateItemStatus(itemId: string, status: string) {
+  const { data, error } = await supabase
+    .from("products")
+    .update({ status })
+    .eq("id", itemId)
+    .select();
+
+  // 🚨 여기서 로그 확인!
+  console.log("업데이트 결과:", data);
+
+  if (!data || data.length === 0) {
+    console.warn("경고: 업데이트된 행이 없습니다. (RLS 권한 문제 의심)");
+    throw error;
+  }
+  return data;
+}
