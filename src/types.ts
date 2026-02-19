@@ -3,6 +3,8 @@ import type { Database } from "./database.types";
 export type chat_room_Entiniy =
   Database["public"]["Tables"]["chat_room"]["Row"];
 
+export type ProductUpdate = Database["public"]["Tables"]["products"]["Update"];
+
 export type useMutationCallback = {
   onSuccess?: () => void;
   onError?: (error: Error) => void;
