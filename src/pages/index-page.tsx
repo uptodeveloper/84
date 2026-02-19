@@ -21,11 +21,14 @@ export default function IndexPage() {
     isLoading, // 로딩 상태 가져오기
     fetchNextPage,
     isFetchingNextPage,
+    hasNextPage,
   } = useInfiniteItemData(searchTerm, category);
 
   useEffect(() => {
-    fetchNextPage();
-  }, [inView]);
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // 로딩 상태: 실제 레이아웃(배너 + 그리드)을 그대로 흉내 냅니다.
   if (isLoading) return <MainSkeleton />;

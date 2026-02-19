@@ -1,5 +1,5 @@
 import supabase from "@/lib/supabase";
-import type { ProductParams } from "@/types";
+import type { ProductParams, ProductUpdate } from "@/types";
 import { uploadImage } from "./image";
 
 // -----------------------------------------------------------------------
@@ -35,7 +35,7 @@ export async function createItem({
 // 2. [수정] 범용 업데이트 함수 (⭐ 리팩토링 핵심!)
 // - 이제 이미지뿐만 아니라 제목, 가격 등 뭐든 수정 가능합니다.
 // -----------------------------------------------------------------------
-export async function updateItem(itemId: string, updates: any) {
+export async function updateItem(itemId: string, updates: ProductUpdate) {
   const { data, error } = await supabase
     .from("products")
     .update(updates) // { title: "새제목" } 또는 { image: [...] } 뭐든 들어감
