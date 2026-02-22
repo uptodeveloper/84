@@ -7,10 +7,25 @@ import {
   MessageCircle, // 아이콘 추가
 } from "lucide-react";
 import { useState } from "react";
+import { useSession } from "@/store/session";
+import UseSignOut from "@/hooks/mutations/auth/use-sign-out";
+import { toast } from "sonner";
 
 export default function GlobalLayout() {
   const navigate = useNavigate(); // 👈 페이지 이동 훅
   const [keyword, setKeyword] = useState(""); // 👈 입력값 상태
+  const session = useSession();
+  const isAuthed = !!session?.user;
+
+  const { mutate: logout, isPending: isLoggingOut } = UseSignOut({
+    onSuccess: () => {
+      toast.success("로그아웃되었습니다.");
+      navigate("/", { replace: true });
+    },
+    onError: () => {
+      toast.error("로그아웃에 실패했습니다.");
+    },
+  });
 
   // 검색 핸들러
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -25,7 +40,38 @@ export default function GlobalLayout() {
       {/* 1. 헤더 */}
       <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
         {/* max-w-screen-xl (1280px)로 고정하여 너무 넓어지는 것 방지 */}
-        <div className="max-w-screen-xl mx-auto px-4 h-16 flex items-center justify-between gap-8">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex justify-end w-full">
+          {" "}
+          {/* ✅ Auth 영역 */}
+          {!isAuthed ? (
+            <div className="flex items-center gap-2">
+              <Link
+                to="/sign-in"
+                className="text-xs font-semibold text-gray-700 hover:text-primary transition-colors"
+              >
+                로그인
+              </Link>
+              {/* <span className="text-gray-300">|</span> */}
+              {/* <Link
+                to="/sign-up"
+                className="text-xs font-semibold text-gray-700 hover:text-primary transition-colors"
+              >
+                회원가입
+              </Link> */}
+            </div>
+          ) : (
+            <button
+              type="button"
+              disabled={isLoggingOut}
+              onClick={() => logout()}
+              className="text-xs font-semibold text-gray-700 hover:text-primary transition-colors disabled:opacity-50"
+            >
+              {isLoggingOut ? "로그아웃중..." : "로그아웃"}
+            </button>
+          )}
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-8">
           <Link to={"/"} className="shrink-0">
             <Logo />
           </Link>
