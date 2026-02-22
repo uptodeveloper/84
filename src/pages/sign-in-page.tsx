@@ -123,7 +123,7 @@ export default function SignInPage() {
             variant={"outline"}
           >
             <img src={gitHubLogo} className="h-4 w-4" />
-            GitHub 계정으로 로그인
+            GitHub로 시작하기
           </Button>
         </div>
 
@@ -134,7 +134,7 @@ export default function SignInPage() {
             to="/sign-up"
             className="font-semibold text-primary hover:underline underline-offset-4"
           >
-            회원가입
+            이메일로 회원가입
           </Link>
         </div>
       </div>

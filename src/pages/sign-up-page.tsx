@@ -49,7 +49,7 @@ export default function SignUpPage() {
               <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 이메일
               </label>
-              {/* Shadcn Input이 없다면 그냥 input에 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background..." 넣으면 됨 */}
+
               <Input
                 disabled={isSignUpPending}
                 value={email}
