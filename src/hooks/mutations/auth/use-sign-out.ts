@@ -1,7 +1,6 @@
 import { signOut } from "@/api/auth";
 import type { useMutationCallback } from "@/types";
 import { useMutation } from "@tanstack/react-query";
-import React from "react";
 
 export default function UseSignOut(callbakcs?: useMutationCallback) {
   return useMutation({
