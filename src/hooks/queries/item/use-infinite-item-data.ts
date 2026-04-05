@@ -1,5 +1,6 @@
 import { getProducts } from "@/api/item";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import type { Product } from "@/types";
 
 const PAGE_SIZE = 5;
 
@@ -15,7 +16,7 @@ export function useInfiniteItemData(term: string, category: string) {
     },
 
     initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
+    getNextPageParam: (lastPage: Product[], allPages: Product[][]) => {
       if (lastPage.length < PAGE_SIZE) return undefined;
       return allPages.length;
     },
