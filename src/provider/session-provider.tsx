@@ -11,7 +11,7 @@ export default function SessionProvider({ children }: { children: ReactNode }) {
     supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
-  }, []);
+  }, [setSession]);
 
   if (!isSessionLoaded) return <GlobalLoader />;
 

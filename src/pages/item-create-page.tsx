@@ -119,7 +119,7 @@ export default function ItemCreatePage() {
 
       // 3) 최종 DB에 저장할 URL 리스트 만들기
       // (기존 이미지 중 안 지워진 것들 + 새로 업로드된 URL들)
-      let finalImageUrls: string[] = [];
+      const finalImageUrls: string[] = [];
       let uploadIndex = 0;
 
       imageList.forEach((item) => {
