@@ -1,10 +1,10 @@
 import type { Product } from "@/types";
 
-interface ProductSummaryProps {
+interface ProductInfoSectionProps {
   product: Product;
 }
 
-export default function ProductSummary({ product }: ProductSummaryProps) {
+export default function ProductInfoSection({ product }: ProductInfoSectionProps) {
   return (
     <div className="space-y-4">
       <h1 className="text-3xl font-bold leading-tight break-keep">

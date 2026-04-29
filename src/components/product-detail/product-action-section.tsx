@@ -2,7 +2,7 @@ import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ProductStatus } from "@/types";
 
-interface ProductActionBarProps {
+interface ProductActionSectionProps {
   isMobile?: boolean;
   isMyProduct: boolean;
   isLiked: boolean;
@@ -14,7 +14,7 @@ interface ProductActionBarProps {
   onChangeStatus: (status: ProductStatus) => void;
 }
 
-export default function ProductActionBar({
+export default function ProductActionSection({
   isMobile = false,
   isMyProduct,
   isLiked,
@@ -24,7 +24,7 @@ export default function ProductActionBar({
   onEdit,
   onDelete,
   onChangeStatus,
-}: ProductActionBarProps) {
+}: ProductActionSectionProps) {
   const ownerActionClassName = isMobile
     ? "font-bold"
     : "flex-1 font-bold";

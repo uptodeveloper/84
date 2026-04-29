@@ -6,17 +6,17 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
-interface ProductImageCarouselProps {
+interface ProductMediaSectionProps {
   images: string[] | null;
   title: string;
   sellerId: string | null;
 }
 
-export default function ProductImageCarousel({
+export default function ProductMediaSection({
   images,
   title,
   sellerId,
-}: ProductImageCarouselProps) {
+}: ProductMediaSectionProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="relative w-full bg-gray-100 rounded-xl overflow-hidden border">

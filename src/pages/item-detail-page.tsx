@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { checkChatRoom } from "@/api/chat";
 import { deleteItem, getItem } from "@/api/item";
-import ProductActionBar from "@/components/product-detail/product-action-bar";
-import ProductImageCarousel from "@/components/product-detail/product-image-carousel";
-import ProductSummary from "@/components/product-detail/product-summary";
+import ProductActionSection from "@/components/product-detail/product-action-section";
+import ProductInfoSection from "@/components/product-detail/product-info-section";
+import ProductMediaSection from "@/components/product-detail/product-media-section";
 import { useUpdateItemStatus } from "@/hooks/mutations/item/use-update-status";
 import { useProductLike } from "@/hooks/queries/like/use-item-like";
 import { useSession } from "@/store/session";
@@ -80,7 +80,9 @@ export default function ItemDetailPage() {
         return;
       }
 
-      navigate(`/chat/new?productId=${product.id}&sellerId=${product.seller_id}`);
+      navigate(
+        `/chat/new?productId=${product.id}&sellerId=${product.seller_id}`,
+      );
     } catch (error) {
       console.error(error);
       toast.error("채팅방 연결 중 오류가 발생했습니다.");
@@ -114,16 +116,16 @@ export default function ItemDetailPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 animate-in fade-in duration-500">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        <ProductImageCarousel
+        <ProductMediaSection
           images={product.image}
           title={product.title}
           sellerId={product.seller_id}
         />
 
         <div className="flex flex-col justify-between h-full">
-          <ProductSummary product={product} />
+          <ProductInfoSection product={product} />
 
-          <ProductActionBar
+          <ProductActionSection
             isMyProduct={isMyProduct}
             isLiked={isLiked}
             status={productStatus}
@@ -144,7 +146,7 @@ export default function ItemDetailPage() {
       </section>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t md:hidden z-50">
-        <ProductActionBar
+        <ProductActionSection
           isMobile
           isMyProduct={isMyProduct}
           isLiked={isLiked}
