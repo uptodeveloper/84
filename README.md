@@ -7,7 +7,7 @@
 
 🛠 Tech Stack
 Core
-Framework: React 18 (Vite)
+Framework: React 19 (Vite)
 
 Language: TypeScript
 
@@ -38,14 +38,14 @@ Infrastructure: Supabase (Auth, Database, Storage, Realtime)
    인증: Supabase Auth를 활용한 이메일 및 소셜 로그인(GitHub)
    시스템을 구축했습니다.
 
-사용자 관리: 프로필 수정 및 판매 내역/찜한 목록
+사용자 관리: 판매 내역/찜한 목록
 탭 구분 기능을 구현했습니다.
 
 📈 Roadmap & Milestone
 프로젝트의 성장 과정을 단계별로 기록하며, 각 이정표는 Git Tag로 관리됩니다.
 
-[v] v1.0.0-react-mvp: React 18 기반 MVP 개발 및 배포 완료 (Current)
+[v] v1.0.0-react-mvp: React 기반 MVP 개발 및 배포 완료
 
-[ ] v2.0.0-react-refactor: React 컴포넌트 구조 고도화 및 최적화 (Planned)
+[v] v2.0.0-react-cleanup: React 19 기준 코드 정비 완료 (Current)
 
 [ ] v3.0.0-next-migration: Next.js App Router 마이그레이션 (Planned)
