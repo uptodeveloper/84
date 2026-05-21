@@ -1,5 +1,7 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getItem, updateItem, createItem } from "@/api/item";
 import { uploadImage } from "@/api/image"; // 이미지 업로드 함수 필요
@@ -10,10 +12,12 @@ import { Plus, X } from "lucide-react";
 import type { ImageItem } from "@/types";
 
 export default function ItemCreatePage() {
-  const { itemId } = useParams();
+  const params = useParams();
+  const itemIdParam = params?.itemId;
+  const itemId = Array.isArray(itemIdParam) ? itemIdParam[0] : itemIdParam;
   const isEditMode = !!itemId;
 
-  const navigate = useNavigate();
+  const router = useRouter();
   const session = useSession();
 
   // 폼 데이터
@@ -145,7 +149,7 @@ export default function ItemCreatePage() {
         // [수정]
         await updateItem(itemId!, productData);
         toast.success("상품이 수정되었습니다!");
-        navigate(`/item/${itemId}`);
+        router.push(`/item/${itemId}`);
       } else {
         // [등록]
         // 등록은 createItemWithImages를 안 쓰고 직접 createItem을 씁니다 (로직 통일을 위해)
@@ -154,7 +158,7 @@ export default function ItemCreatePage() {
           seller_id: session.user.id,
         });
         toast.success("상품이 등록되었습니다!");
-        navigate("/");
+        router.push("/");
       }
     } catch (error) {
       console.error(error);
@@ -274,7 +278,7 @@ export default function ItemCreatePage() {
             variant="outline"
             className="flex-1"
             disabled={isLoading}
-            onClick={() => navigate(-1)}
+            onClick={() => router.back()}
           >
             취소
           </Button>

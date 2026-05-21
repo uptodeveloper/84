@@ -1,3 +1,5 @@
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
 import { checkChatRoom } from "@/api/chat";
 import { deleteItem, getItem } from "@/api/item";
@@ -8,11 +10,13 @@ import { useUpdateItemStatus } from "@/hooks/mutations/item/use-update-status";
 import { useProductLike } from "@/hooks/queries/like/use-item-like";
 import { useSession } from "@/store/session";
 import { toast } from "sonner";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams, useRouter } from "next/navigation";
 
 export default function ItemDetailPage() {
-  const { itemId } = useParams();
-  const navigate = useNavigate();
+  const params = useParams();
+  const itemIdParam = params?.itemId;
+  const itemId = Array.isArray(itemIdParam) ? itemIdParam[0] : itemIdParam;
+  const router = useRouter();
   const session = useSession();
   const userId = session?.user?.id ?? null;
 
@@ -49,7 +53,7 @@ export default function ItemDetailPage() {
     try {
       await deleteItem(product.id);
       toast.success("삭제되었습니다.");
-      navigate("/");
+      router.push("/");
     } catch (error) {
       console.error(error);
       toast.error("삭제 중 오류가 발생했습니다.");
@@ -58,7 +62,7 @@ export default function ItemDetailPage() {
 
   const handleEdit = () => {
     if (!product) return;
-    navigate(`/item/edit/${product.id}`);
+    router.push(`/item/edit/${product.id}`);
   };
 
   const handleChatClick = async () => {
@@ -76,11 +80,11 @@ export default function ItemDetailPage() {
       });
 
       if (existingRoomId) {
-        navigate(`/chat/${existingRoomId}`);
+        router.push(`/chat/${existingRoomId}`);
         return;
       }
 
-      navigate(
+      router.push(
         `/chat/new?productId=${product.id}&sellerId=${product.seller_id}`,
       );
     } catch (error) {

@@ -1,8 +1,17 @@
-import { useSession } from "@/store/session";
-import { Navigate, Outlet } from "react-router-dom";
+"use client";
 
-export default function MemberOnlyLayout() {
+import { useSession } from "@/store/session";
+import { useRouter } from "next/navigation";
+import { useEffect, type ReactNode } from "react";
+
+export default function MemberOnlyLayout({ children }: { children: ReactNode }) {
   const session = useSession();
-  if (!session) return <Navigate to={"/sign-in"} replace={true} />;
-  return <Outlet />;
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!session) router.replace("/sign-in");
+  }, [router, session]);
+
+  if (!session) return null;
+  return children;
 }

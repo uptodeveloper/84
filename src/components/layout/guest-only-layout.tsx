@@ -1,8 +1,17 @@
-import { useSession } from "@/store/session";
-import { Navigate, Outlet } from "react-router-dom";
+"use client";
 
-export default function GuestOnlyLayout() {
+import { useSession } from "@/store/session";
+import { useRouter } from "next/navigation";
+import { useEffect, type ReactNode } from "react";
+
+export default function GuestOnlyLayout({ children }: { children: ReactNode }) {
   const session = useSession();
-  if (session) return <Navigate to={"/"} replace={true} />;
-  return <Outlet />;
+  const router = useRouter();
+
+  useEffect(() => {
+    if (session) router.replace("/");
+  }, [router, session]);
+
+  if (session) return null;
+  return children;
 }

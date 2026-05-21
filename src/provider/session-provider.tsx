@@ -1,3 +1,5 @@
+"use client";
+
 import GlobalLoader from "@/components/global-loader";
 import supabase from "@/lib/supabase";
 import { useIsSeesionLoaded, useSetSession } from "@/store/session";

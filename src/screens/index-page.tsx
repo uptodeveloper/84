@@ -1,4 +1,6 @@
-import { useSearchParams } from "react-router-dom"; // 페이지 이동용
+"use client";
+
+import { useSearchParams } from "next/navigation"; // 페이지 이동용
 import MainSkeleton from "@/components/main-skeleton";
 import { useInView } from "react-intersection-observer";
 import { useEffect } from "react";
@@ -7,9 +9,9 @@ import { useSession } from "@/store/session";
 import ItemCard from "@/components/item-card";
 
 export default function IndexPage() {
-  const [searchParams] = useSearchParams();
-  const searchTerm = searchParams.get("q") || ""; // URL에서 'q' 값 꺼내기 (없으면 빈 문자열)
-  const category = searchParams.get("category") || "전체"; // 카테고리도 URL로 관리 가능
+  const searchParams = useSearchParams();
+  const searchTerm = searchParams?.get("q") || ""; // URL에서 'q' 값 꺼내기 (없으면 빈 문자열)
+  const category = searchParams?.get("category") || "전체"; // 카테고리도 URL로 관리 가능
   const { ref, inView } = useInView();
   // 🟢 유저 정보 가져오기 (ItemCard에 넘겨줘야 함)
   const session = useSession();

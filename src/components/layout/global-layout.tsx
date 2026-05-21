@@ -1,18 +1,21 @@
+"use client";
+
 import Logo from "@/assets/logo";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Search,
   ShoppingBag,
   User,
   MessageCircle, // 아이콘 추가
 } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useSession } from "@/store/session";
 import UseSignOut from "@/hooks/mutations/auth/use-sign-out";
 import { toast } from "sonner";
 
-export default function GlobalLayout() {
-  const navigate = useNavigate(); // 👈 페이지 이동 훅
+export default function GlobalLayout({ children }: { children: ReactNode }) {
+  const router = useRouter(); // 👈 페이지 이동 훅
   const [keyword, setKeyword] = useState(""); // 👈 입력값 상태
   const session = useSession();
   const isAuthed = !!session?.user;
@@ -20,7 +23,7 @@ export default function GlobalLayout() {
   const { mutate: logout, isPending: isLoggingOut } = UseSignOut({
     onSuccess: () => {
       toast.success("로그아웃되었습니다.");
-      navigate("/", { replace: true });
+      router.replace("/");
     },
     onError: () => {
       toast.error("로그아웃에 실패했습니다.");
@@ -32,7 +35,7 @@ export default function GlobalLayout() {
     if (e.key === "Enter") {
       // 엔터 치면 메인 페이지로 이동하면서 쿼리 파라미터 전달
       // 예: /?q=노트북
-      navigate(`/?q=${keyword}`);
+      router.push(`/?q=${keyword}`);
     }
   };
   return (
@@ -46,7 +49,7 @@ export default function GlobalLayout() {
           {!isAuthed ? (
             <div className="flex items-center gap-2">
               <Link
-                to="/sign-in"
+                href="/sign-in"
                 className="text-xs font-semibold text-gray-700 hover:text-primary transition-colors"
               >
                 로그인
@@ -72,7 +75,7 @@ export default function GlobalLayout() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-8">
-          <Link to={"/"} className="shrink-0">
+          <Link href={"/"} className="shrink-0">
             <Logo />
           </Link>
 
@@ -90,7 +93,7 @@ export default function GlobalLayout() {
 
           <div className="flex items-center gap-5 shrink-0">
             <Link
-              to="/chat"
+              href="/chat"
               className="flex flex-col items-center gap-1 text-gray-600 hover:text-primary transition-colors"
             >
               <MessageCircle className="w-6 h-6" />
@@ -99,14 +102,14 @@ export default function GlobalLayout() {
             </Link>
 
             <Link
-              to="/item-upload"
+              href="/item-upload"
               className="flex flex-col items-center gap-1 text-gray-600 hover:text-primary transition-colors"
             >
               <ShoppingBag className="w-6 h-6" />
               <span className="text-[10px] font-medium">판매하기</span>
             </Link>
             <Link
-              to="/my"
+              href="/my"
               className="flex flex-col items-center gap-1 text-gray-600 hover:text-primary transition-colors"
             >
               <User className="w-6 h-6" />
@@ -131,7 +134,7 @@ export default function GlobalLayout() {
         {/* [A] 본문 영역 */}
         {/* w-full로 꽉 채워서 헤더와 라인을 완벽하게 맞춤 */}
         <main className="w-full">
-          <Outlet />
+          {children}
         </main>
 
         {/* [B] 우측 날개 사이드바 (기능은 나중에) (Absolute Positioning) */}

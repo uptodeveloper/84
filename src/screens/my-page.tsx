@@ -1,3 +1,5 @@
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
 import { getLikedProducts, getMyProducts } from "@/api/item";
 import { useSession } from "@/store/session";

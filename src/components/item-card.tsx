@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
 import { Heart } from "lucide-react";
 import { useProductLike } from "@/hooks/queries/like/use-item-like";
 import type { Tables } from "@/database.types";
@@ -31,7 +33,7 @@ export default function ItemCard({
 
   return (
     <Link
-      to={`/item/${item.id}`} // URL도 item으로 통일
+      href={`/item/${item.id}`} // URL도 item으로 통일
       className="border rounded-lg overflow-hidden hover:shadow-md transition group bg-white relative block"
     >
       {/* 썸네일 영역 */}

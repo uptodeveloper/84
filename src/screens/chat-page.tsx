@@ -1,3 +1,5 @@
+"use client";
+
 import {
   enterChatRoom,
   getMessages,
@@ -8,27 +10,25 @@ import supabase from "@/lib/supabase";
 import { useSession } from "@/store/session";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import {
-  Link,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from "react-router-dom";
+import Link from "next/link";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 export default function ChatPage() {
-  const { roomId } = useParams();
-  const [searchParams] = useSearchParams();
+  const params = useParams();
+  const roomIdParam = params?.roomId;
+  const roomId = Array.isArray(roomIdParam) ? roomIdParam[0] : roomIdParam;
+  const searchParams = useSearchParams();
   const session = useSession();
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
+  const router = useRouter();
   const sessionUserId = session?.user?.id ?? null;
 
   const [inputText, setInputText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const isGhostRoom = roomId === "new";
-  const ghostProductId = searchParams.get("productId");
-  const ghostSellerId = searchParams.get("sellerId");
+  const ghostProductId = searchParams?.get("productId");
+  const ghostSellerId = searchParams?.get("sellerId");
 
   const { data: chatRooms } = useQuery({
     queryKey: ["chatRooms", sessionUserId],
@@ -71,7 +71,7 @@ export default function ChatPage() {
         });
 
         targetRoomId = newRoomId;
-        navigate(`/chat/${newRoomId}`, { replace: true });
+        router.replace(`/chat/${newRoomId}`);
       }
 
       if (targetRoomId && targetRoomId !== "new") {
@@ -158,7 +158,7 @@ export default function ChatPage() {
             {chatRooms?.map((room) => (
               <Link
                 key={room.id}
-                to={`/chat/${room.id}`}
+                href={`/chat/${room.id}`}
                 className={`block p-3 rounded-lg border cursor-pointer hover:bg-gray-50 ${roomId === room.id ? "bg-orange-50 border-orange-200" : "bg-white"}`}
               >
                 <p className="font-bold text-sm truncate">
