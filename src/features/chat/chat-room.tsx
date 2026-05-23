@@ -13,7 +13,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
-export default function ChatPage() {
+export default function ChatRoom() {
   const params = useParams();
   const roomIdParam = params?.roomId;
   const roomId = Array.isArray(roomIdParam) ? roomIdParam[0] : roomIdParam;

@@ -1,10 +1,10 @@
 import MemberOnlyLayout from "@/components/layout/member-only-layout";
-import MyPage from "@/screens/my-page";
+import MyShop from "@/features/my/my-shop";
 
 export default function My() {
   return (
     <MemberOnlyLayout>
-      <MyPage />
+      <MyShop />
     </MemberOnlyLayout>
   );
 }
