@@ -1,10 +1,10 @@
 import MemberOnlyLayout from "@/components/layout/member-only-layout";
-import ChatPage from "@/screens/chat-page";
+import ChatRoom from "@/features/chat/chat-room";
 
 export default function Chat() {
   return (
     <MemberOnlyLayout>
-      <ChatPage />
+      <ChatRoom />
     </MemberOnlyLayout>
   );
 }

@@ -4,10 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { getLikedProducts, getMyProducts } from "@/api/item";
 import { useSession } from "@/store/session";
 import { useState } from "react";
-import ItemCard from "@/components/item-card";
+import ItemCard from "@/features/item/item-card";
 import type { Product } from "@/types";
 
-export default function MyPage() {
+export default function MyShop() {
   const session = useSession();
   const userId = session?.user?.id ?? null;
   const [activeTab, setActiveTab] = useState<"sales" | "likes">("sales");

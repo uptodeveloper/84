@@ -1,10 +1,10 @@
 import MemberOnlyLayout from "@/components/layout/member-only-layout";
-import ItemCreatePage from "@/screens/item-create-page";
+import ItemForm from "@/features/item/item-form";
 
 export default function ItemEdit() {
   return (
     <MemberOnlyLayout>
-      <ItemCreatePage />
+      <ItemForm />
     </MemberOnlyLayout>
   );
 }

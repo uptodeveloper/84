@@ -1,4 +1,4 @@
-export default function MainSkeleton() {
+export default function HomeProductListSkeleton() {
   return (
     <div className="space-y-8 px-4 md:px-0">
       {/* 1. 배너 스켈레톤 (높이 맞춤: h-40 ~ h-64) */}

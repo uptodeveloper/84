@@ -1,5 +1,5 @@
-import IndexPage from "@/screens/index-page";
+import HomeProductList from "@/features/home/home-product-list";
 
 export default function Home() {
-  return <IndexPage />;
+  return <HomeProductList />;
 }

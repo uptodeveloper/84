@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
 import type { ImageItem } from "@/types";
 
-export default function ItemCreatePage() {
+export default function ItemForm() {
   const params = useParams();
   const itemIdParam = params?.itemId;
   const itemId = Array.isArray(itemIdParam) ? itemIdParam[0] : itemIdParam;

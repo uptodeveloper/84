@@ -1,5 +1,5 @@
-import ItemDetailPage from "@/screens/item-detail-page";
+import ItemDetail from "@/features/item/item-detail";
 
-export default function ItemDetail() {
-  return <ItemDetailPage />;
+export default function ItemDetailPage() {
+  return <ItemDetail />;
 }

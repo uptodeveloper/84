@@ -3,16 +3,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { checkChatRoom } from "@/api/chat";
 import { deleteItem, getItem } from "@/api/item";
-import ProductActionSection from "@/components/product-detail/product-action-section";
-import ProductInfoSection from "@/components/product-detail/product-info-section";
-import ProductMediaSection from "@/components/product-detail/product-media-section";
+import ProductActionSection from "./product-action-section";
+import ProductInfoSection from "./product-info-section";
+import ProductMediaSection from "./product-media-section";
 import { useUpdateItemStatus } from "@/hooks/mutations/item/use-update-status";
 import { useProductLike } from "@/hooks/queries/like/use-item-like";
 import { useSession } from "@/store/session";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
 
-export default function ItemDetailPage() {
+export default function ItemDetail() {
   const params = useParams();
   const itemIdParam = params?.itemId;
   const itemId = Array.isArray(itemIdParam) ? itemIdParam[0] : itemIdParam;

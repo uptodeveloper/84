@@ -10,7 +10,7 @@ import { useSignInwithOAuth } from "@/hooks/mutations/auth/use-sign-in-with-oaut
 import gitHubLogo from "@/assets/github-mark.svg";
 import { toast } from "sonner";
 import { generateErrorMessage } from "@/lib/error";
-export default function SignInPage() {
+export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 

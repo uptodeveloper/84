@@ -1,14 +1,14 @@
 "use client";
 
 import { useSearchParams } from "next/navigation"; // 페이지 이동용
-import MainSkeleton from "@/components/main-skeleton";
+import HomeProductListSkeleton from "./home-product-list-skeleton";
 import { useInView } from "react-intersection-observer";
 import { useEffect } from "react";
 import { useInfiniteItemData } from "@/hooks/queries/item/use-infinite-item-data";
 import { useSession } from "@/store/session";
-import ItemCard from "@/components/item-card";
+import ItemCard from "@/features/item/item-card";
 
-export default function IndexPage() {
+export default function HomeProductList() {
   const searchParams = useSearchParams();
   const searchTerm = searchParams?.get("q") || ""; // URL에서 'q' 값 꺼내기 (없으면 빈 문자열)
   const category = searchParams?.get("category") || "전체"; // 카테고리도 URL로 관리 가능
@@ -33,7 +33,7 @@ export default function IndexPage() {
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // 로딩 상태: 실제 레이아웃(배너 + 그리드)을 그대로 흉내 냅니다.
-  if (isLoading) return <MainSkeleton />;
+  if (isLoading) return <HomeProductListSkeleton />;
 
   return (
     <div className="space-y-8 px-4 md:px-0">

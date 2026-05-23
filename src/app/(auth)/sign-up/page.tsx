@@ -1,10 +1,10 @@
 import GuestOnlyLayout from "@/components/layout/guest-only-layout";
-import SignUpPage from "@/screens/sign-up-page";
+import SignUpForm from "@/features/auth/sign-up-form";
 
 export default function SignUp() {
   return (
     <GuestOnlyLayout>
-      <SignUpPage />
+      <SignUpForm />
     </GuestOnlyLayout>
   );
 }
