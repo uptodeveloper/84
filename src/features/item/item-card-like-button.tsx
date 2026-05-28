@@ -14,10 +14,7 @@ export default function ItemCardLikeButton({
 }: ItemCardLikeButtonProps) {
   const { isLiked, toggleLike } = useProductLike(productId, userId);
 
-  const handleLike = (event: React.MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-
+  const handleLike = () => {
     if (!userId) {
       alert("로그인이 필요합니다.");
       return;
