@@ -1,3 +1,6 @@
+"use client";
+
+import Image from "next/image";
 import {
   Carousel,
   CarouselContent,
@@ -28,9 +31,12 @@ export default function ProductMediaSection({
                   key={index}
                   className="pl-0 w-full flex items-center justify-center bg-black/5"
                 >
-                  <img
+                  <Image
                     src={imgUrl}
                     alt={title}
+                    width={800}
+                    height={800}
+                    sizes="(min-width: 768px) 50vw, 100vw"
                     className="w-full h-auto max-h-[500px] object-contain"
                   />
                 </CarouselItem>

@@ -7,6 +7,7 @@ interface ProductActionSectionProps {
   isMyProduct: boolean;
   isLiked: boolean;
   status: ProductStatus;
+  isPending?: boolean;
   onLike: () => void;
   onChat: () => void;
   onEdit: () => void;
@@ -19,15 +20,14 @@ export default function ProductActionSection({
   isMyProduct,
   isLiked,
   status,
+  isPending = false,
   onLike,
   onChat,
   onEdit,
   onDelete,
   onChangeStatus,
 }: ProductActionSectionProps) {
-  const ownerActionClassName = isMobile
-    ? "font-bold"
-    : "flex-1 font-bold";
+  const ownerActionClassName = isMobile ? "font-bold" : "flex-1 font-bold";
 
   const wrapperClassName = isMobile
     ? "flex justify-center gap-3"
@@ -39,6 +39,7 @@ export default function ProductActionSection({
         {status === "SOLD_OUT" ? (
           <Button
             onClick={() => onChangeStatus("FOR_SALE")}
+            disabled={isPending}
             className={`${ownerActionClassName} bg-green-600 hover:bg-green-700`}
           >
             판매중으로 변경
@@ -46,16 +47,17 @@ export default function ProductActionSection({
         ) : (
           <Button
             onClick={() => onChangeStatus("SOLD_OUT")}
+            disabled={isPending}
             className={`${ownerActionClassName} bg-gray-800 hover:bg-black`}
           >
             판매 완료 처리
           </Button>
         )}
 
-        <Button variant="outline" onClick={onEdit}>
+        <Button variant="outline" onClick={onEdit} disabled={isPending}>
           수정
         </Button>
-        <Button variant="destructive" onClick={onDelete}>
+        <Button variant="destructive" onClick={onDelete} disabled={isPending}>
           삭제
         </Button>
       </div>
@@ -69,6 +71,7 @@ export default function ProductActionSection({
         size={isMobile ? undefined : "lg"}
         className="w-14 px-0"
         onClick={onLike}
+        disabled={isPending}
       >
         <Heart
           className={`transition-colors ${
@@ -79,7 +82,7 @@ export default function ProductActionSection({
       <Button
         onClick={onChat}
         size={isMobile ? undefined : "lg"}
-        disabled={!isMobile && status === "SOLD_OUT"}
+        disabled={isPending || (!isMobile && status === "SOLD_OUT")}
         className={
           isMobile
             ? "flex-1 bg-orange-500 font-bold"
@@ -93,7 +96,7 @@ export default function ProductActionSection({
         {isMobile
           ? "채팅으로 거래하기"
           : status === "SOLD_OUT"
-            ? "거래가 완료된 상품입니다."
+            ? "거래가 완료된 상품입니다"
             : "채팅하기"}
       </Button>
     </div>
