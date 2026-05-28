@@ -1,8 +1,9 @@
 import { getProducts } from "@/api/item";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import type { Product } from "@/types";
-
-const PAGE_SIZE = 5;
+import {
+  getNextItemPageParam,
+  ITEM_PAGE_SIZE,
+} from "@/features/item/pagination";
 
 export function useInfiniteItemData(
   term: string,
@@ -12,17 +13,15 @@ export function useInfiniteItemData(
   return useInfiniteQuery({
     queryKey: ["products", "list", term, category, initialPageParam],
     queryFn: async ({ pageParam }) => {
-      const from = pageParam * PAGE_SIZE;
-      const to = from + PAGE_SIZE - 1;
+      const from = pageParam * ITEM_PAGE_SIZE;
+      const to = from + ITEM_PAGE_SIZE - 1;
       const items = await getProducts({ from, to, term, category });
 
       return items;
     },
 
     initialPageParam,
-    getNextPageParam: (lastPage: Product[], allPages: Product[][]) => {
-      if (lastPage.length < PAGE_SIZE) return undefined;
-      return allPages.length;
-    },
+    getNextPageParam: (lastPage, allPages) =>
+      getNextItemPageParam(lastPage, allPages, initialPageParam),
   });
 }

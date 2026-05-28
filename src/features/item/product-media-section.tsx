@@ -1,13 +1,5 @@
-"use client";
-
 import Image from "next/image";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import ProductImageCarousel from "./product-image-carousel";
 
 interface ProductMediaSectionProps {
   images: string[] | null;
@@ -20,35 +12,32 @@ export default function ProductMediaSection({
   title,
   sellerId,
 }: ProductMediaSectionProps) {
+  const hasImages = images && images.length > 0;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="relative w-full bg-gray-100 rounded-xl overflow-hidden border">
-        {images && images.length > 0 ? (
-          <Carousel className="w-full h-full">
-            <CarouselContent className="h-full ml-0">
-              {images.map((imgUrl, index) => (
-                <CarouselItem
-                  key={index}
-                  className="pl-0 w-full flex items-center justify-center bg-black/5"
-                >
-                  <Image
-                    src={imgUrl}
-                    alt={title}
-                    width={800}
-                    height={800}
-                    sizes="(min-width: 768px) 50vw, 100vw"
-                    className="w-full h-auto max-h-[500px] object-contain"
-                  />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="left-2" />
-            <CarouselNext className="right-2" />
-          </Carousel>
-        ) : (
+        {!hasImages && (
           <div className="flex items-center justify-center h-[400px] text-gray-400">
             이미지 없음
           </div>
+        )}
+
+        {hasImages && images.length === 1 && (
+          <div className="relative w-full h-[400px] md:h-[500px] bg-black/5">
+            <Image
+              src={images[0]}
+              alt={title}
+              fill
+              sizes="(min-width: 768px) 50vw, 100vw"
+              className="object-contain"
+              priority
+            />
+          </div>
+        )}
+
+        {hasImages && images.length > 1 && (
+          <ProductImageCarousel images={images} title={title} />
         )}
       </div>
 

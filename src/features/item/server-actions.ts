@@ -17,12 +17,12 @@ import {
   getItemCategoryCacheTag,
   getItemCacheTag,
   ITEM_HOME_CACHE_TAG,
-  ITEM_LIST_CACHE_TAG,
 } from "./cache-tags";
 
 type ItemCacheTarget = {
   id: string;
   category?: string | null;
+  previousCategory?: string | null;
 };
 
 function updateItemCaches(item?: ItemCacheTarget) {
@@ -32,11 +32,14 @@ function updateItemCaches(item?: ItemCacheTarget) {
     updateTag(getItemCacheTag(item.id));
   }
 
-  updateTag(ITEM_LIST_CACHE_TAG);
   updateTag(ITEM_HOME_CACHE_TAG);
 
   if (item?.category) {
     updateTag(getItemCategoryCacheTag(item.category));
+  }
+
+  if (item?.previousCategory && item.previousCategory !== item.category) {
+    updateTag(getItemCategoryCacheTag(item.previousCategory));
   }
 }
 
@@ -49,9 +52,10 @@ export async function createItemAction(params: ProductParams): Promise<Product> 
 export async function updateItemAction(
   itemId: string,
   updates: ProductUpdate,
+  previousCategory?: string | null,
 ): Promise<Product> {
   const product = await updateItem(itemId, updates);
-  updateItemCaches(product);
+  updateItemCaches({ ...product, previousCategory });
   return product;
 }
 

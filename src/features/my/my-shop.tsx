@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getLikedProducts, getMyProducts } from "@/api/item";
 import { useSession } from "@/store/session";
 import { useState } from "react";
-import ItemCard from "@/features/item/item-card";
+import InteractiveItemCard from "@/features/item/interactive-item-card";
 import type { Product } from "@/types";
 
 export default function MyShop() {
@@ -102,7 +102,7 @@ export default function MyShop() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {displayItems?.map((item: Product) => (
-            <ItemCard
+            <InteractiveItemCard
               key={item.id}
               item={item}
               userId={userId}

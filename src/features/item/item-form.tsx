@@ -108,7 +108,11 @@ export default function ItemForm({ initialProduct }: ItemFormProps) {
       };
 
       if (isEditMode) {
-        await updateItemAction(initialProduct.id, productData);
+        await updateItemAction(
+          initialProduct.id,
+          productData,
+          initialProduct.category,
+        );
         toast.success("상품이 수정되었습니다.");
         router.push(`/item/${initialProduct.id}`);
       } else {

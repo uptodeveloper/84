@@ -1,4 +1,3 @@
-export const ITEM_LIST_CACHE_TAG = "items";
 export const ITEM_HOME_CACHE_TAG = "items:home";
 
 export function getItemCacheTag(itemId: string): string {
@@ -16,11 +15,11 @@ export function getItemDetailCacheTags(itemId: string): string[] {
 }
 
 export function getItemHomeCacheTags(category?: string): string[] {
-  // 홈 기본 목록과 카테고리 목록은 같은 items 계열이지만 갱신 범위가 다르다.
+  // 홈 기본 목록과 카테고리 목록은 갱신 범위가 다르다.
   // 기본 홈은 items:home, 카테고리는 items:category:<category>로 따로 갱신한다.
   if (category) {
-    return [ITEM_LIST_CACHE_TAG, getItemCategoryCacheTag(category)];
+    return [getItemCategoryCacheTag(category)];
   }
 
-  return [ITEM_LIST_CACHE_TAG, ITEM_HOME_CACHE_TAG];
+  return [ITEM_HOME_CACHE_TAG];
 }
