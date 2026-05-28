@@ -1,67 +1,41 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { getItem, updateItem, createItem } from "@/api/item";
-import { uploadImage } from "@/api/image"; // 이미지 업로드 함수 필요
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createItemAction, updateItemAction } from "./server-actions";
+import { uploadImage } from "@/api/image";
 import { useSession } from "@/store/session";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
-import type { ImageItem } from "@/types";
+import type { ImageItem, Product } from "@/types";
 
-export default function ItemForm() {
-  const params = useParams();
-  const itemIdParam = params?.itemId;
-  const itemId = Array.isArray(itemIdParam) ? itemIdParam[0] : itemIdParam;
-  const isEditMode = !!itemId;
+interface ItemFormProps {
+  initialProduct?: Product;
+}
 
+export default function ItemForm({ initialProduct }: ItemFormProps) {
+  const isEditMode = !!initialProduct;
   const router = useRouter();
   const session = useSession();
 
-  // 폼 데이터
   const [formData, setFormData] = useState({
-    title: "",
-    price: "",
-    description: "",
-    category: "기타",
+    title: initialProduct?.title ?? "",
+    price: initialProduct ? String(initialProduct.price) : "",
+    description: initialProduct?.description ?? "",
+    category: initialProduct?.category || "기타",
   });
 
-  // ⭐ 핵심: 기존 이미지와 새 이미지를 통합 관리하는 State
-  const [imageList, setImageList] = useState<ImageItem[]>([]);
+  const [imageList, setImageList] = useState<ImageItem[]>(
+    () =>
+      initialProduct?.image?.map((url) => ({
+        id: url,
+        url,
+        file: undefined,
+      })) ?? [],
+  );
   const [isLoading, setIsLoading] = useState(false);
 
-  // 1. [수정 모드] 데이터 불러오기
-  const { data: existingProduct } = useQuery({
-    queryKey: ["product", itemId],
-    queryFn: () => getItem(itemId!),
-    enabled: isEditMode,
-  });
-
-  // 2. 데이터 채우기
-  useEffect(() => {
-    if (isEditMode && existingProduct) {
-      setFormData({
-        title: existingProduct.title,
-        price: String(existingProduct.price),
-        description: existingProduct.description,
-        category: existingProduct.category || "기타",
-      });
-
-      // 기존 이미지 URL들을 ImageItem 형식으로 변환해서 넣기
-      if (existingProduct.image) {
-        const initialImages = existingProduct.image.map((url: string) => ({
-          id: url, // 기존 이미지는 URL 자체가 ID 역할
-          url: url,
-          file: undefined, // 파일 객체는 없음
-        }));
-        setImageList(initialImages);
-      }
-    }
-  }, [isEditMode, existingProduct]);
-
-  // 3. 입력 핸들러
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -71,68 +45,56 @@ export default function ItemForm() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ⭐ 4. 이미지 추가 핸들러
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
     const newItems: ImageItem[] = Array.from(files).map((file) => ({
-      id: Math.random().toString(36), // 임시 ID 생성
-      url: URL.createObjectURL(file), // 미리보기 URL
-      file: file, // 업로드할 파일 객체
+      id: Math.random().toString(36),
+      url: URL.createObjectURL(file),
+      file,
     }));
 
     setImageList((prev) => [...prev, ...newItems]);
   };
 
-  // ⭐ 5. 이미지 삭제 핸들러
   const removeImage = (targetId: string) => {
     setImageList((prev) => prev.filter((item) => item.id !== targetId));
   };
 
-  // 6. 제출 핸들러
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session?.user) return toast.error("로그인이 필요합니다.");
-    const { title, price, description, category } = formData;
-    if (!title || !price || !description)
-      return toast.error("빈칸을 채워주세요.");
 
-    setIsLoading(true); // 🔴 로딩 시작 (버튼 비활성화용)
+    const { title, price, description, category } = formData;
+    if (!title || !price || !description) {
+      return toast.error("빈칸을 채워주세요.");
+    }
+
+    setIsLoading(true);
 
     try {
-      // 1) 새 이미지만 골라서 업로드 수행
       const newImages = imageList.filter((item) => item.file);
 
       const uploadPromises = newImages.map(async (item) => {
         const file = item.file!;
         const fileExt = file.name.split(".").pop() || "webp";
         const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${fileExt}`;
-
-        // itemId가 없으면(등록) 임시 ID 사용, 있으면(수정) 기존 ID 사용
-        // (주의: 등록 시에는 아직 item.id가 없어서 user_id 폴더에 임시로 넣거나 로직 조정 필요)
-        // 여기서는 간단하게 user_id 아래에 둡니다.
-        const pathId = isEditMode ? itemId : "temp";
+        const pathId = initialProduct?.id ?? "temp";
         const filePath = `${session.user?.id}/${pathId}/${fileName}`;
 
         return await uploadImage({ file, filePath });
       });
 
-      // 2) 업로드된 URL들 받기
       const uploadedUrls = await Promise.all(uploadPromises);
-
-      // 3) 최종 DB에 저장할 URL 리스트 만들기
-      // (기존 이미지 중 안 지워진 것들 + 새로 업로드된 URL들)
       const finalImageUrls: string[] = [];
       let uploadIndex = 0;
 
       imageList.forEach((item) => {
         if (item.file) {
-          // 새 파일이었던 자리는 업로드된 URL로 교체
           finalImageUrls.push(uploadedUrls[uploadIndex]);
           uploadIndex++;
         } else {
-          // 기존 파일은 URL 그대로 유지
           finalImageUrls.push(item.url);
         }
       });
@@ -142,29 +104,26 @@ export default function ItemForm() {
         price: Number(price),
         description,
         category,
-        image: finalImageUrls, // ⭐ 완성된 URL 배열
+        image: finalImageUrls,
       };
 
       if (isEditMode) {
-        // [수정]
-        await updateItem(itemId!, productData);
-        toast.success("상품이 수정되었습니다!");
-        router.push(`/item/${itemId}`);
+        await updateItemAction(initialProduct.id, productData);
+        toast.success("상품이 수정되었습니다.");
+        router.push(`/item/${initialProduct.id}`);
       } else {
-        // [등록]
-        // 등록은 createItemWithImages를 안 쓰고 직접 createItem을 씁니다 (로직 통일을 위해)
-        await createItem({
+        await createItemAction({
           ...productData,
           seller_id: session.user.id,
         });
-        toast.success("상품이 등록되었습니다!");
+        toast.success("상품이 등록되었습니다.");
         router.push("/");
       }
     } catch (error) {
       console.error(error);
       toast.error("작업 중 오류가 발생했습니다.");
     } finally {
-      setIsLoading(false); // 🔴 로딩 끝
+      setIsLoading(false);
     }
   };
 
@@ -175,7 +134,6 @@ export default function ItemForm() {
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* 이미지 업로드 */}
         <div>
           <label className="block text-sm font-medium mb-2">상품 이미지</label>
           <div className="flex gap-2 overflow-x-auto py-2">
@@ -188,7 +146,6 @@ export default function ItemForm() {
                 className="hidden"
                 accept="image/*"
                 onChange={handleImageChange}
-                // disabled 삭제함 (이제 수정 때도 가능!)
               />
             </label>
 
@@ -214,7 +171,6 @@ export default function ItemForm() {
           </div>
         </div>
 
-        {/* 나머지 입력 필드들 (기존과 동일) */}
         <div>
           <label className="block text-sm font-medium mb-1">제목</label>
           <input
@@ -271,7 +227,6 @@ export default function ItemForm() {
           />
         </div>
 
-        {/* 하단 버튼 */}
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t max-w-xl mx-auto flex gap-2">
           <Button
             type="button"
@@ -285,7 +240,7 @@ export default function ItemForm() {
           <Button
             type="submit"
             className="flex-1 bg-orange-500 font-bold"
-            disabled={isLoading} // ⭐ 여기서 isLoading 사용 (중복 클릭 방지)
+            disabled={isLoading}
           >
             {isLoading ? "처리 중..." : isEditMode ? "수정 완료" : "등록 완료"}
           </Button>
