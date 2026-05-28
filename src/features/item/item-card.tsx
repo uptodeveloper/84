@@ -8,13 +8,13 @@ import type { Tables } from "@/database.types";
 
 interface ItemCardProps {
   item: Tables<"products">;
-  userId: string | null;
+  userId?: string | null;
   showLikeButton?: boolean;
 }
 
 export default function ItemCard({
   item,
-  userId,
+  userId = null,
   showLikeButton = false,
 }: ItemCardProps) {
   // 훅에 item.id 전달

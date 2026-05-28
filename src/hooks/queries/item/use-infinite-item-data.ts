@@ -4,9 +4,13 @@ import type { Product } from "@/types";
 
 const PAGE_SIZE = 5;
 
-export function useInfiniteItemData(term: string, category: string) {
+export function useInfiniteItemData(
+  term: string,
+  category: string,
+  initialPageParam = 0,
+) {
   return useInfiniteQuery({
-    queryKey: ["products", "list", term, category],
+    queryKey: ["products", "list", term, category, initialPageParam],
     queryFn: async ({ pageParam }) => {
       const from = pageParam * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
@@ -15,7 +19,7 @@ export function useInfiniteItemData(term: string, category: string) {
       return items;
     },
 
-    initialPageParam: 0,
+    initialPageParam,
     getNextPageParam: (lastPage: Product[], allPages: Product[][]) => {
       if (lastPage.length < PAGE_SIZE) return undefined;
       return allPages.length;
