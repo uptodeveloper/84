@@ -2,18 +2,6 @@
 
 import { updateTag } from "next/cache";
 import {
-  createItem,
-  deleteItem,
-  updateItem,
-  updateItemStatus,
-} from "@/api/item";
-import type {
-  Product,
-  ProductParams,
-  ProductStatus,
-  ProductUpdate,
-} from "@/types";
-import {
   getItemCategoryCacheTag,
   getItemCacheTag,
   ITEM_HOME_CACHE_TAG,
@@ -25,9 +13,9 @@ type ItemCacheTarget = {
   previousCategory?: string | null;
 };
 
-function updateItemCaches(item?: ItemCacheTarget) {
-  // 상품 변경은 상세 페이지와 홈/카테고리 목록 화면에 모두 영향을 준다.
-  // 상세, 홈, 카테고리 태그를 나눠서 필요한 캐시만 갱신할 수 있게 한다.
+export async function revalidateItemCachesAction(item?: ItemCacheTarget) {
+  // 현재 인증은 브라우저 localStorage/Zustand 기반이라 서버 액션에서 Supabase 쓰기 권한을 안정적으로 알 수 없다.
+  // 그래서 DB 변경은 클라이언트 Supabase 세션으로 처리하고, 서버 액션은 Next 캐시 태그 갱신만 담당한다.
   if (item?.id) {
     updateTag(getItemCacheTag(item.id));
   }
@@ -41,37 +29,4 @@ function updateItemCaches(item?: ItemCacheTarget) {
   if (item?.previousCategory && item.previousCategory !== item.category) {
     updateTag(getItemCategoryCacheTag(item.previousCategory));
   }
-}
-
-export async function createItemAction(params: ProductParams): Promise<Product> {
-  const product = await createItem(params);
-  updateItemCaches(product);
-  return product;
-}
-
-export async function updateItemAction(
-  itemId: string,
-  updates: ProductUpdate,
-  previousCategory?: string | null,
-): Promise<Product> {
-  const product = await updateItem(itemId, updates);
-  updateItemCaches({ ...product, previousCategory });
-  return product;
-}
-
-export async function deleteItemAction(
-  itemId: string,
-  category?: string | null,
-): Promise<void> {
-  await deleteItem(itemId);
-  updateItemCaches({ id: itemId, category });
-}
-
-export async function updateItemStatusAction(
-  itemId: string,
-  status: ProductStatus,
-): Promise<Product> {
-  const product = await updateItemStatus(itemId, status);
-  updateItemCaches(product);
-  return product;
 }

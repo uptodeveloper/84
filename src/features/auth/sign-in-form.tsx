@@ -7,9 +7,9 @@ import Logo from "@/assets/logo";
 import { Input } from "@/components/ui/input";
 import { useSignInWithPassowrd } from "@/hooks/mutations/auth/use-sign-in-with-password";
 import { useSignInwithOAuth } from "@/hooks/mutations/auth/use-sign-in-with-oauth";
-import gitHubLogo from "@/assets/github-mark.svg";
 import { toast } from "sonner";
 import { generateErrorMessage } from "@/lib/error";
+import { Github } from "lucide-react";
 export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -124,7 +124,7 @@ export default function SignInForm() {
             className="w-full"
             variant={"outline"}
           >
-            <img src={gitHubLogo} className="h-4 w-4" alt="" />
+            <Github className="h-4 w-4" aria-hidden="true" />
             GitHub로 시작하기
           </Button>
         </div>

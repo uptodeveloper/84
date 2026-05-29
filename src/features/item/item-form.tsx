@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createItemAction, updateItemAction } from "./server-actions";
+import { createItem, updateItem } from "@/api/item";
+import { revalidateItemCachesAction } from "./server-actions";
 import { uploadImage } from "@/api/image";
 import { useSession } from "@/store/session";
 import { Button } from "@/components/ui/button";
@@ -108,17 +109,22 @@ export default function ItemForm({ initialProduct }: ItemFormProps) {
       };
 
       if (isEditMode) {
-        await updateItemAction(
-          initialProduct.id,
-          productData,
-          initialProduct.category,
-        );
+        const product = await updateItem(initialProduct.id, productData);
+        await revalidateItemCachesAction({
+          id: product.id,
+          category: product.category,
+          previousCategory: initialProduct.category,
+        });
         toast.success("상품이 수정되었습니다.");
         router.push(`/item/${initialProduct.id}`);
       } else {
-        await createItemAction({
+        const product = await createItem({
           ...productData,
           seller_id: session.user.id,
+        });
+        await revalidateItemCachesAction({
+          id: product.id,
+          category: product.category,
         });
         toast.success("상품이 등록되었습니다.");
         router.push("/");
