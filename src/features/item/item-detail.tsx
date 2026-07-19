@@ -25,7 +25,6 @@ export default function ItemDetail({ product }: ItemDetailProps) {
           <ItemDetailInteractions
             productId={product.id}
             sellerId={product.seller_id}
-            category={product.category}
             status={productStatus}
           />
         </div>
@@ -43,7 +42,6 @@ export default function ItemDetail({ product }: ItemDetailProps) {
           isMobile
           productId={product.id}
           sellerId={product.seller_id}
-          category={product.category}
           status={productStatus}
         />
       </div>
