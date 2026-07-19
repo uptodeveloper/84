@@ -4,17 +4,15 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { checkChatRoom } from "@/api/chat";
-import { deleteItem, updateItemStatus } from "@/api/item";
 import { useProductLike } from "@/hooks/queries/like/use-item-like";
 import { useSession } from "@/store/session";
 import type { ProductStatus } from "@/types";
-import { revalidateItemCachesAction } from "./server-actions";
+import { deleteItemAction, updateItemStatusAction } from "./server-actions";
 import ProductActionSection from "./product-action-section";
 
 interface ItemDetailInteractionsProps {
   productId: string;
   sellerId: string | null;
-  category: string | null;
   status: ProductStatus;
   isMobile?: boolean;
 }
@@ -22,7 +20,6 @@ interface ItemDetailInteractionsProps {
 export default function ItemDetailInteractions({
   productId,
   sellerId,
-  category,
   status,
   isMobile = false,
 }: ItemDetailInteractionsProps) {
@@ -47,8 +44,7 @@ export default function ItemDetailInteractions({
 
     startTransition(async () => {
       try {
-        await deleteItem(productId);
-        await revalidateItemCachesAction({ id: productId, category });
+        await deleteItemAction({ id: productId });
         toast.success("삭제되었습니다.");
         router.push("/");
         router.refresh();
@@ -66,11 +62,7 @@ export default function ItemDetailInteractions({
   const handleChangeStatus = (nextStatus: ProductStatus) => {
     startTransition(async () => {
       try {
-        const product = await updateItemStatus(productId, nextStatus);
-        await revalidateItemCachesAction({
-          id: product.id,
-          category: product.category,
-        });
+        await updateItemStatusAction({ id: productId, status: nextStatus });
         toast.success("상태가 변경되었습니다.");
         router.refresh();
       } catch (error) {

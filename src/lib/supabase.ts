@@ -1,9 +1,5 @@
-import type { Database } from "@/database.types";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseBrowserClient } from "./supabase/client";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
-
-const supabase = createClient<Database>(supabaseUrl, supabaseKey);
+const supabase = createSupabaseBrowserClient();
 
 export default supabase;
