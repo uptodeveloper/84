@@ -13,16 +13,15 @@ interface ItemEditProps {
 export const dynamic = "force-dynamic";
 
 export default async function ItemEdit({ params }: ItemEditProps) {
-  // 이번 브랜치에서는 로그인 여부만 서버에서 확인합니다.
-  // 판매자 권한 검증과 수정 mutation 전환은 item form/server action 브랜치에서 다룹니다.
-  await requireUserId();
+  const userId = await requireUserId();
 
   const { itemId } = await params;
   const product = await getCachedItem(itemId);
 
-  if (!product) {
+  // 수정 폼을 보여주기 전에 서버에서 판매자 여부를 확인하고, mutation 시점에도 DB 기준으로 다시 검증합니다.
+  if (!product || product.seller_id !== userId) {
     notFound();
   }
 
-  return <ItemForm initialProduct={product} />;
+  return <ItemForm userId={userId} initialProduct={product} />;
 }

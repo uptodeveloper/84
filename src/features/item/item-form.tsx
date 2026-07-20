@@ -2,23 +2,21 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createItem, updateItem } from "@/api/item";
-import { revalidateItemCachesAction } from "./server-actions";
+import { createItemAction, updateItemAction } from "./server-actions";
 import { uploadImage } from "@/api/image";
-import { useSession } from "@/store/session";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
 import type { ImageItem, Product } from "@/types";
 
 interface ItemFormProps {
+  userId: string;
   initialProduct?: Product;
 }
 
-export default function ItemForm({ initialProduct }: ItemFormProps) {
+export default function ItemForm({ userId, initialProduct }: ItemFormProps) {
   const isEditMode = !!initialProduct;
   const router = useRouter();
-  const session = useSession();
 
   const [formData, setFormData] = useState({
     title: initialProduct?.title ?? "",
@@ -65,7 +63,6 @@ export default function ItemForm({ initialProduct }: ItemFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!session?.user) return toast.error("로그인이 필요합니다.");
 
     const { title, price, description, category } = formData;
     if (!title || !price || !description) {
@@ -75,6 +72,8 @@ export default function ItemForm({ initialProduct }: ItemFormProps) {
     setIsLoading(true);
 
     try {
+      // 이미지 선택/미리보기/업로드는 즉각적인 UX를 위해 클라이언트에 유지합니다.
+      // 업로드 경로의 userId는 이 보호 페이지가 서버에서 확인해 전달한 값입니다.
       const newImages = imageList.filter((item) => item.file);
 
       const uploadPromises = newImages.map(async (item) => {
@@ -82,7 +81,7 @@ export default function ItemForm({ initialProduct }: ItemFormProps) {
         const fileExt = file.name.split(".").pop() || "webp";
         const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${fileExt}`;
         const pathId = initialProduct?.id ?? "temp";
-        const filePath = `${session.user?.id}/${pathId}/${fileName}`;
+        const filePath = `${userId}/${pathId}/${fileName}`;
 
         return await uploadImage({ file, filePath });
       });
@@ -109,23 +108,16 @@ export default function ItemForm({ initialProduct }: ItemFormProps) {
       };
 
       if (isEditMode) {
-        const product = await updateItem(initialProduct.id, productData);
-        await revalidateItemCachesAction({
-          id: product.id,
-          category: product.category,
-          previousCategory: initialProduct.category,
+        // 실제 DB 수정과 판매자 권한 검증은 서버 액션에서 다시 처리합니다.
+        await updateItemAction({
+          id: initialProduct.id,
+          input: productData,
         });
         toast.success("상품이 수정되었습니다.");
         router.push(`/item/${initialProduct.id}`);
       } else {
-        const product = await createItem({
-          ...productData,
-          seller_id: session.user.id,
-        });
-        await revalidateItemCachesAction({
-          id: product.id,
-          category: product.category,
-        });
+        // seller_id는 폼에서 보내지 않고 서버가 인증 쿠키의 userId로 결정합니다.
+        await createItemAction(productData);
         toast.success("상품이 등록되었습니다.");
         router.push("/");
       }
