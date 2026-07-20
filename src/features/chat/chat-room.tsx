@@ -1,88 +1,114 @@
 "use client";
 
-import {
-  enterChatRoom,
-  getMessages,
-  getMyChatRooms,
-  sendMessage,
-} from "@/api/chat";
+import { getMessages, getMyChatRooms } from "@/api/chat";
 import supabase from "@/lib/supabase";
-import { useSession } from "@/store/session";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import type { MessageEntity } from "@/types";
+import { appendMessageToCache } from "./message-cache";
+import { chatQueryKeys } from "./query-keys";
+import { enterChatRoomAction, sendMessageAction } from "./server-actions";
 
-export default function ChatRoom() {
-  const params = useParams();
-  const roomIdParam = params?.roomId;
-  const roomId = Array.isArray(roomIdParam) ? roomIdParam[0] : roomIdParam;
-  const searchParams = useSearchParams();
-  const session = useSession();
+interface ChatRoomProps {
+  userId: string;
+  roomId?: string;
+  draftProductId?: string;
+}
+
+const CHAT_QUERY_STALE_TIME = 30_000;
+
+export default function ChatRoom({
+  userId,
+  roomId,
+  draftProductId,
+}: ChatRoomProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const sessionUserId = session?.user?.id ?? null;
 
   const [inputText, setInputText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const isGhostRoom = roomId === "new";
-  const ghostProductId = searchParams?.get("productId");
-  const ghostSellerId = searchParams?.get("sellerId");
+  // effect 의존성이 매 렌더마다 바뀌어 채널이 재구독되지 않도록 query key 참조를 고정합니다.
+  const roomsQueryKey = useMemo(() => chatQueryKeys.rooms(userId), [userId]);
+  const messagesQueryKey = useMemo(
+    () => chatQueryKeys.messages(userId, roomId ?? ""),
+    [roomId, userId],
+  );
 
   const { data: chatRooms } = useQuery({
-    queryKey: ["chatRooms", sessionUserId],
-    queryFn: () => getMyChatRooms(sessionUserId ?? ""),
-    enabled: !!sessionUserId,
+    // 같은 key로 서버에서 hydrate된 데이터가 있으므로 마운트 직후 빈 로딩 상태를 거치지 않습니다.
+    queryKey: roomsQueryKey,
+    queryFn: () => getMyChatRooms(userId),
+    staleTime: CHAT_QUERY_STALE_TIME,
   });
 
   const { data: messages } = useQuery({
-    queryKey: ["messages", roomId],
+    queryKey: messagesQueryKey,
     queryFn: () => getMessages(roomId ?? ""),
     enabled: !!roomId && !isGhostRoom,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
-    staleTime: 0,
+    staleTime: CHAT_QUERY_STALE_TIME,
   });
 
-  const { mutate: send } = useMutation({
-    mutationFn: sendMessage,
-    onSuccess: () => {
+  const { mutateAsync: send, isPending: isSending } = useMutation({
+    mutationFn: sendMessageAction,
+    onSuccess: (message, variables) => {
+      // 전송자는 서버 액션 결과를 즉시 반영하고, 뒤이어 오는 Realtime 이벤트는 id 중복 검사로 무시합니다.
+      queryClient.setQueryData<MessageEntity[]>(
+        chatQueryKeys.messages(userId, variables.roomId),
+        (previousMessages) =>
+          appendMessageToCache(previousMessages, message),
+      );
       setInputText("");
-      if (roomId && !isGhostRoom) {
-        queryClient.invalidateQueries({ queryKey: ["messages", roomId] });
-      }
     },
   });
 
   const handleSend = async () => {
-    if (!inputText.trim() || !sessionUserId) return;
+    if (!inputText.trim() || isSubmitting) return;
 
     let targetRoomId = roomId;
+    setIsSubmitting(true);
 
     try {
       if (isGhostRoom) {
-        if (!ghostProductId || !ghostSellerId) return;
+        if (!draftProductId) return;
 
-        const newRoomId = await enterChatRoom({
-          product_id: ghostProductId,
-          buyer_id: sessionUserId,
-          seller_id: ghostSellerId,
+        const newRoomId = await enterChatRoomAction({
+          productId: draftProductId,
         });
 
         targetRoomId = newRoomId;
-        router.replace(`/chat/${newRoomId}`);
+        await queryClient.invalidateQueries({ queryKey: roomsQueryKey });
       }
 
       if (targetRoomId && targetRoomId !== "new") {
-        send({
-          room_id: targetRoomId,
-          sender_id: sessionUserId,
+        await send({
+          roomId: targetRoomId,
           content: inputText,
         });
+
+        // 첫 메시지가 저장된 뒤 이동해 새 페이지의 서버 초기 조회와 전송 요청이 경쟁하지 않게 합니다.
+        if (isGhostRoom) {
+          router.replace(`/chat/${targetRoomId}`);
+        }
       }
     } catch (error) {
       console.error("메시지 전송 실패", error);
+      toast.error("메시지 전송에 실패했습니다.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -95,51 +121,120 @@ export default function ChatRoom() {
   useEffect(() => {
     if (!roomId || isGhostRoom) return;
 
-    const channel = supabase
-      .channel(`room:${roomId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `room_id=eq.${roomId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["messages", roomId] });
-        },
-      )
-      .subscribe();
+    let isCancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | undefined;
+
+    const subscribeToMessages = async () => {
+      try {
+        // Realtime RLS가 인증 JWT를 사용하도록 브라우저 세션을 연결한 뒤 구독합니다.
+        await supabase.realtime.setAuth();
+        if (isCancelled) return;
+
+        channel = supabase
+          .channel(`room:${roomId}`)
+          .on<MessageEntity>(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "messages",
+              filter: `room_id=eq.${roomId}`,
+            },
+            (payload) => {
+              queryClient.setQueryData<MessageEntity[]>(
+                messagesQueryKey,
+                (previousMessages) =>
+                  appendMessageToCache(previousMessages, payload.new),
+              );
+            },
+          )
+          .subscribe((status, error) => {
+            if (process.env.NODE_ENV === "development") {
+              console.info(
+                `[Realtime:messages:${roomId}]`,
+                status,
+                error ?? "",
+              );
+            }
+
+            if (status === "SUBSCRIBED") {
+              // 최초 연결과 재연결 시 서버 조회 이후 놓친 메시지만 한 번 보정합니다.
+              void queryClient.invalidateQueries({
+                queryKey: messagesQueryKey,
+                exact: true,
+              });
+            }
+
+            if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+              console.error(`[Realtime:messages:${roomId}]`, status, error);
+            }
+          });
+      } catch (error) {
+        console.error(`[Realtime:messages:${roomId}] 인증 실패`, error);
+      }
+    };
+
+    void subscribeToMessages();
 
     return () => {
-      supabase.removeChannel(channel);
+      isCancelled = true;
+      if (channel) void supabase.removeChannel(channel);
     };
-  }, [isGhostRoom, queryClient, roomId]);
+  }, [isGhostRoom, messagesQueryKey, queryClient, roomId]);
 
   useEffect(() => {
-    if (!sessionUserId) return;
+    let isCancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | undefined;
 
-    const channel = supabase
-      .channel(`my_chat_rooms_${sessionUserId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "chat_room",
-        },
-        () => {
-          queryClient.invalidateQueries({
-            queryKey: ["chatRooms", sessionUserId],
+    const subscribeToRooms = async () => {
+      try {
+        // 방 목록 변경도 참여자 RLS를 통과해야 하므로 현재 브라우저 세션의 JWT를 Realtime에 연결합니다.
+        await supabase.realtime.setAuth();
+        if (isCancelled) return;
+
+        channel = supabase
+          .channel(`my_chat_rooms_${userId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "chat_room",
+            },
+            () => {
+              // Realtime payload에는 products 조인 정보가 없으므로 방 목록은 서버 데이터를 다시 조회합니다.
+              void queryClient.invalidateQueries({ queryKey: roomsQueryKey });
+            },
+          )
+          .subscribe((status, error) => {
+            if (process.env.NODE_ENV === "development") {
+              console.info(`[Realtime:rooms:${userId}]`, status, error ?? "");
+            }
+
+            if (status === "SUBSCRIBED") {
+              // 구독이 준비되기 전에 생성된 방이 있을 수 있어 연결 직후 현재 목록을 한 번 동기화합니다.
+              void queryClient.invalidateQueries({
+                queryKey: roomsQueryKey,
+                exact: true,
+              });
+            }
+
+            if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+              console.error(`[Realtime:rooms:${userId}]`, status, error);
+            }
           });
-        },
-      )
-      .subscribe();
+      } catch (error) {
+        console.error(`[Realtime:rooms:${userId}] 인증 실패`, error);
+      }
+    };
+
+    void subscribeToRooms();
 
     return () => {
-      supabase.removeChannel(channel);
+      isCancelled = true;
+      if (channel) void supabase.removeChannel(channel);
     };
-  }, [queryClient, sessionUserId]);
+  }, [queryClient, roomsQueryKey, userId]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -185,7 +280,7 @@ export default function ChatRoom() {
                 className="flex-1 bg-gray-50 p-4 overflow-y-auto flex flex-col gap-3 min-h-0"
               >
                 {messages?.map((msg) => {
-                  const isMe = msg.sender_id === sessionUserId;
+                  const isMe = msg.sender_id === userId;
                   return (
                     <div
                       key={msg.id}
@@ -209,6 +304,7 @@ export default function ChatRoom() {
                 <input
                   type="text"
                   value={inputText}
+                  disabled={isSubmitting}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyDown={handleKeyDown}
                   className="flex-1 border rounded-md px-3 py-2 text-sm focus:outline-none focus:border-orange-500"
@@ -216,9 +312,10 @@ export default function ChatRoom() {
                 />
                 <button
                   onClick={handleSend}
-                  className="bg-orange-500 text-white px-4 py-2 rounded-md font-bold"
+                  disabled={isSubmitting || isSending}
+                  className="bg-orange-500 text-white px-4 py-2 rounded-md font-bold disabled:opacity-50"
                 >
-                  전송
+                  {isSubmitting || isSending ? "전송 중" : "전송"}
                 </button>
               </div>
             </>
