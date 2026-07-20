@@ -5,8 +5,8 @@ import ItemForm from "@/features/item/item-form";
 export const dynamic = "force-dynamic";
 
 export default async function ItemUpload() {
-  // 폼 내부의 업로드/입력 UX는 아직 클라이언트에 남기고, 접근 차단만 서버에서 먼저 처리합니다.
-  await requireUserId();
+  // 서버에서 확인한 userId는 이미지 저장 경로에만 사용하고, DB의 seller_id는 서버 액션에서 다시 결정합니다.
+  const userId = await requireUserId();
 
-  return <ItemForm />;
+  return <ItemForm userId={userId} />;
 }
