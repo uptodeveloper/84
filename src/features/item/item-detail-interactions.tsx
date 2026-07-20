@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { checkChatRoom } from "@/api/chat";
+import { findChatRoomAction } from "@/features/chat/server-actions";
 import { useProductLike } from "@/hooks/queries/like/use-item-like";
 import { useSession } from "@/store/session";
 import type { ProductStatus } from "@/types";
@@ -80,18 +80,15 @@ export default function ItemDetailInteractions({
     }
 
     try {
-      const existingRoomId = await checkChatRoom({
-        product_id: productId,
-        buyer_id: session.user.id,
-        seller_id: sellerId,
-      });
+      // buyer/seller 판정은 클라이언트 값을 믿지 않고 서버 액션에서 다시 확인합니다.
+      const existingRoomId = await findChatRoomAction({ productId });
 
       if (existingRoomId) {
         router.push(`/chat/${existingRoomId}`);
         return;
       }
 
-      router.push(`/chat/new?productId=${productId}&sellerId=${sellerId}`);
+      router.push(`/chat/new?productId=${productId}`);
     } catch (error) {
       console.error(error);
       toast.error("채팅방 연결 중 오류가 발생했습니다.");

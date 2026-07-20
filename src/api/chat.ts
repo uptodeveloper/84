@@ -1,66 +1,8 @@
 import supabase from "@/lib/supabase";
-import type {
-  ChatRoomEntity,
-  ChatRoomParams,
-  MessageEntity,
-  SendMessageInput,
-} from "@/types";
-import type { Tables } from "@/database.types";
+import type { ChatRoomListItem } from "@/features/chat/types";
+import type { MessageEntity } from "@/types";
 
-type ChatRoomListItem = Pick<ChatRoomEntity, "id" | "buyer_id" | "seller_id"> & {
-  products: Pick<Tables<"products">, "id" | "title" | "image" | "price"> | null;
-};
-
-export const checkChatRoom = async ({
-  product_id,
-  buyer_id,
-  seller_id,
-}: ChatRoomParams): Promise<string | null> => {
-  const { data, error } = await supabase
-    .from("chat_room")
-    .select("id")
-    .eq("product_id", product_id)
-    .eq("buyer_id", buyer_id)
-    .eq("seller_id", seller_id)
-    .maybeSingle();
-
-  if (error) throw error;
-  return data?.id || null;
-};
-
-export async function enterChatRoom(params: ChatRoomParams): Promise<string> {
-  const existingRoomId = await checkChatRoom(params);
-
-  if (existingRoomId) {
-    return existingRoomId;
-  }
-
-  const { data: newRoom, error } = await supabase
-    .from("chat_room")
-    .insert({
-      product_id: params.product_id,
-      seller_id: params.seller_id,
-      buyer_id: params.buyer_id,
-    })
-    .select("id")
-    .single();
-
-  if (error) throw error;
-  return newRoom.id;
-}
-
-export async function sendMessage({
-  room_id,
-  sender_id,
-  content,
-}: SendMessageInput): Promise<void> {
-  const { error } = await supabase
-    .from("messages")
-    .insert({ room_id, sender_id, content });
-
-  if (error) throw error;
-}
-
+// 초기 데이터는 서버가 hydrate하지만, 포커스/재연결 복구 시에는 브라우저 Query가 RLS 범위로 다시 조회합니다.
 export async function getMessages(room_id: string): Promise<MessageEntity[]> {
   const { data, error } = await supabase
     .from("messages")
