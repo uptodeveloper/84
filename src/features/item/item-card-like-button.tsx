@@ -1,40 +1,23 @@
 "use client";
 
 import { Heart } from "lucide-react";
-import { useProductLike } from "@/hooks/queries/like/use-item-like";
 
 interface ItemCardLikeButtonProps {
-  productId: string;
-  userId?: string | null;
+  onUnlike?: () => void;
 }
 
 export default function ItemCardLikeButton({
-  productId,
-  userId = null,
+  onUnlike,
 }: ItemCardLikeButtonProps) {
-  const { isLiked, toggleLike } = useProductLike(productId, userId);
-
-  const handleLike = () => {
-    if (!userId) {
-      alert("로그인이 필요합니다.");
-      return;
-    }
-
-    toggleLike();
-  };
-
   return (
     <button
       type="button"
-      onClick={handleLike}
-      className="absolute top-2 right-2 bg-white/80 hover:bg-white p-2 rounded-full shadow-sm transition-all z-10"
-      aria-label="찜하기"
+      onClick={onUnlike}
+      // 판매완료 오버레이가 z-20이므로 하트는 그보다 위에서 클릭을 받을 수 있어야 합니다.
+      className="absolute top-2 right-2 z-30 bg-white/80 hover:bg-white p-2 rounded-full shadow-sm transition-all"
+      aria-label="찜 해제"
     >
-      <Heart
-        className={`w-5 h-5 transition-colors ${
-          isLiked ? "fill-red-500 text-red-500" : "text-gray-300"
-        }`}
-      />
+      <Heart className="w-5 h-5 fill-red-500 text-red-500 transition-colors" />
     </button>
   );
 }

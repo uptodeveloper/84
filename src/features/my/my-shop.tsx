@@ -3,6 +3,7 @@
 import InteractiveItemCard from "@/features/item/interactive-item-card";
 import type { Product } from "@/types";
 import { useState } from "react";
+import { useMyLikedItems } from "./use-my-liked-items";
 
 type MyShopProps = {
   userId: string;
@@ -14,7 +15,11 @@ type MyShopProps = {
 // 이 컴포넌트는 탭 상태와 카드 인터랙션만 담당해 client auth/query 의존을 줄입니다.
 export default function MyShop({ userId, myItems, likedItems }: MyShopProps) {
   const [activeTab, setActiveTab] = useState<"sales" | "likes">("sales");
-  const displayItems = activeTab === "sales" ? myItems : likedItems;
+  const { likedItems: visibleLikedItems, unlikeItem } = useMyLikedItems(
+    userId,
+    likedItems,
+  );
+  const displayItems = activeTab === "sales" ? myItems : visibleLikedItems;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -45,7 +50,10 @@ export default function MyShop({ userId, myItems, likedItems }: MyShopProps) {
               : "text-gray-400 hover:text-gray-600"
           }`}
         >
-          찜 목록 <span className="text-sm font-normal">({likedItems.length})</span>
+          찜 목록{" "}
+          <span className="text-sm font-normal">
+            ({visibleLikedItems.length})
+          </span>
         </button>
       </div>
 
@@ -61,8 +69,8 @@ export default function MyShop({ userId, myItems, likedItems }: MyShopProps) {
             <InteractiveItemCard
               key={item.id}
               item={item}
-              userId={userId}
               showLikeButton={activeTab === "likes"}
+              onUnlike={() => unlikeItem(item)}
             />
           ))}
         </div>
