@@ -40,11 +40,19 @@ export default function SignInForm() {
     });
 
   const handleSignInWithPasswordClick = () => {
-    if (email.trim() === " ") return;
-    if (email.trim() === " ") return;
+    // 빈 입력은 Supabase 요청 전에 막아 사용자가 바로 원인을 알 수 있게 합니다.
+    if (email.trim() === "") {
+      toast.error("이메일을 입력해주세요.");
+      return;
+    }
+
+    if (password.trim() === "") {
+      toast.error("비밀번호를 입력해주세요.");
+      return;
+    }
 
     signInWithPassword({
-      email,
+      email: email.trim(),
       password,
     });
   };

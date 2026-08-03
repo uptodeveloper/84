@@ -6,21 +6,22 @@ import ItemCardLikeButton from "./item-card-like-button";
 
 interface InteractiveItemCardProps {
   item: Tables<"products">;
-  userId?: string | null;
   showLikeButton?: boolean;
+  onUnlike?: () => void;
 }
 
 export default function InteractiveItemCard({
   item,
-  userId = null,
   showLikeButton = false,
+  onUnlike,
 }: InteractiveItemCardProps) {
   return (
     <ItemCard
       item={item}
       action={
         showLikeButton ? (
-          <ItemCardLikeButton productId={item.id} userId={userId} />
+          // 실제 mutation은 목록을 소유한 MyShop 쪽 hook이 처리하고 카드는 클릭만 전달합니다.
+          <ItemCardLikeButton onUnlike={onUnlike} />
         ) : undefined
       }
     />
