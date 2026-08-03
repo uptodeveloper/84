@@ -29,6 +29,7 @@ export default function ProductActionSection({
   onDelete,
   onChangeStatus,
 }: ProductActionSectionProps) {
+  const isSoldOut = status === "SOLD_OUT";
   const ownerActionClassName = isMobile ? "font-bold" : "flex-1 font-bold";
 
   const wrapperClassName = isMobile
@@ -93,21 +94,20 @@ export default function ProductActionSection({
       <Button
         onClick={onChat}
         size={isMobile ? undefined : "lg"}
-        disabled={isPending || (!isMobile && status === "SOLD_OUT")}
+        // 판매완료 여부는 화면 크기와 관계없는 상품 상태이므로 모바일과 데스크톱에 동일하게 적용합니다.
+        disabled={isPending || isSoldOut}
         className={
-          isMobile
-            ? "flex-1 bg-orange-500 font-bold"
-            : `flex-1 font-bold text-lg ${
-                status === "SOLD_OUT"
-                  ? "bg-gray-300 cursor-not-allowed text-gray-500"
-                  : "bg-orange-500 hover:bg-orange-600"
-              }`
+          isSoldOut
+            ? "flex-1 cursor-not-allowed bg-gray-300 font-bold text-gray-500"
+            : isMobile
+              ? "flex-1 bg-orange-500 font-bold hover:bg-orange-600"
+              : "flex-1 bg-orange-500 text-lg font-bold hover:bg-orange-600"
         }
       >
-        {isMobile
-          ? "채팅으로 거래하기"
-          : status === "SOLD_OUT"
-            ? "거래가 완료된 상품입니다"
+        {isSoldOut
+          ? "거래가 완료된 상품입니다"
+          : isMobile
+            ? "채팅으로 거래하기"
             : "채팅하기"}
       </Button>
     </div>
