@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Logo from "@/assets/logo";
 import { Input } from "@/components/ui/input";
 import { useSignUp } from "@/hooks/mutations/auth/use-sign-up";
@@ -10,6 +11,7 @@ import { generateErrorMessage } from "@/lib/error";
 import { toast } from "sonner";
 
 export default function SignUpForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -26,7 +28,20 @@ export default function SignUpForm() {
     if (email.trim() === "") return;
     if (password.trim() === "") return;
 
-    signUp({ email, password });
+    signUp(
+      { email, password },
+      {
+        onSuccess: ({ session }) => {
+          if (session) {
+            router.replace("/");
+            router.refresh();
+            return;
+          }
+
+          toast.success("가입 확인 이메일을 확인해주세요.");
+        },
+      },
+    );
   };
 
   return (

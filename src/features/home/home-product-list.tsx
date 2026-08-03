@@ -23,8 +23,13 @@ export default function HomeProductList({
         <h3 className="text-xl font-bold mb-4">오늘의 상품 추천</h3>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-8 md:gap-x-6 md:gap-y-10">
-          {initialItems.map((product) => (
-            <ItemCard key={product.id} item={product} />
+          {initialItems.map((product, index) => (
+            <ItemCard
+              key={product.id}
+              item={product}
+              // 첫 카드는 홈의 LCP 후보이므로 브라우저가 이미지 요청을 미루지 않게 합니다.
+              eager={index === 0}
+            />
           ))}
         </div>
       </section>

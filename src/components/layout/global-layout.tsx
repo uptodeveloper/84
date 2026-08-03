@@ -10,17 +10,17 @@ import {
   MessageCircle, // 아이콘 추가
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { useSession } from "@/store/session";
-import UseSignOut from "@/hooks/mutations/auth/use-sign-out";
+import { useSignOut } from "@/hooks/mutations/auth/use-sign-out";
 import { toast } from "sonner";
+import { useViewer } from "@/features/auth/use-viewer";
 
 export default function GlobalLayout({ children }: { children: ReactNode }) {
   const router = useRouter(); // 👈 페이지 이동 훅
   const [keyword, setKeyword] = useState(""); // 👈 입력값 상태
-  const session = useSession();
-  const isAuthed = !!session?.user;
+  const { data: viewer, isPending: isViewerPending } = useViewer();
+  const isAuthed = !!viewer?.userId;
 
-  const { mutate: logout, isPending: isLoggingOut } = UseSignOut({
+  const { mutate: logout, isPending: isLoggingOut } = useSignOut({
     onSuccess: () => {
       toast.success("로그아웃되었습니다.");
       router.replace("/");
@@ -46,7 +46,10 @@ export default function GlobalLayout({ children }: { children: ReactNode }) {
         <div className="max-w-7xl mx-auto px-4 h-16 flex justify-end w-full">
           {" "}
           {/* ✅ Auth 영역 */}
-          {!isAuthed ? (
+          {isViewerPending ? (
+            // 로그인 여부를 확인하는 동안 잘못된 버튼이 잠깐 보이지 않도록 같은 크기의 자리만 유지합니다.
+            <div className="h-5 w-12" aria-hidden="true" />
+          ) : !isAuthed ? (
             <div className="flex items-center gap-2">
               <Link
                 href="/sign-in"

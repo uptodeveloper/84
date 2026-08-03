@@ -4,8 +4,8 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { findChatRoomAction } from "@/features/chat/server-actions";
+import { useViewer } from "@/features/auth/use-viewer";
 import { useProductLike } from "@/hooks/queries/like/use-item-like";
-import { useSession } from "@/store/session";
 import type { ProductStatus } from "@/types";
 import { deleteItemAction, updateItemStatusAction } from "./server-actions";
 import ProductActionSection from "./product-action-section";
@@ -24,12 +24,12 @@ export default function ItemDetailInteractions({
   isMobile = false,
 }: ItemDetailInteractionsProps) {
   const router = useRouter();
-  const session = useSession();
-  const userId = session?.user?.id ?? null;
+  const { data: viewer, isPending: isViewerPending } = useViewer();
+  const userId = viewer?.userId ?? null;
   const [isPending, startTransition] = useTransition();
 
   const { isLiked, toggleLike } = useProductLike(productId, userId);
-  const isMyProduct = !!sellerId && session?.user?.id === sellerId;
+  const isMyProduct = !!sellerId && userId === sellerId;
 
   const handleLike = () => {
     if (!userId) {
@@ -73,9 +73,9 @@ export default function ItemDetailInteractions({
   };
 
   const handleChatClick = async () => {
-    if (!session?.user) return toast.error("로그인이 필요합니다.");
+    if (!userId) return toast.error("로그인이 필요합니다.");
     if (!sellerId) return;
-    if (session.user.id === sellerId) {
+    if (userId === sellerId) {
       return toast.error("본인 상품과는 채팅할 수 없습니다.");
     }
 
@@ -101,6 +101,7 @@ export default function ItemDetailInteractions({
       isMyProduct={isMyProduct}
       isLiked={isLiked}
       status={status}
+      isViewerPending={isViewerPending}
       isPending={isPending}
       onLike={handleLike}
       onChat={handleChatClick}

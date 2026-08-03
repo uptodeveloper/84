@@ -6,9 +6,10 @@ import type { Tables } from "@/database.types";
 interface ItemCardProps {
   item: Tables<"products">;
   action?: ReactNode;
+  eager?: boolean;
 }
 
-export default function ItemCard({ item, action }: ItemCardProps) {
+export default function ItemCard({ item, action, eager = false }: ItemCardProps) {
   return (
     <article className="border rounded-lg overflow-hidden hover:shadow-md transition bg-white relative">
       <Link href={`/item/${item.id}`} className="group block">
@@ -19,6 +20,7 @@ export default function ItemCard({ item, action }: ItemCardProps) {
               alt={item.title}
               fill
               sizes="(min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+              loading={eager ? "eager" : "lazy"}
               className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
