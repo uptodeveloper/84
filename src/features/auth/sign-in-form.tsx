@@ -3,19 +3,25 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Logo from "@/assets/logo";
 import { Input } from "@/components/ui/input";
-import { useSignInWithPassowrd } from "@/hooks/mutations/auth/use-sign-in-with-password";
-import { useSignInwithOAuth } from "@/hooks/mutations/auth/use-sign-in-with-oauth";
+import { useSignInWithPassword } from "@/hooks/mutations/auth/use-sign-in-with-password";
+import { useSignInWithOAuth } from "@/hooks/mutations/auth/use-sign-in-with-oauth";
 import { toast } from "sonner";
 import { generateErrorMessage } from "@/lib/error";
 import { Github } from "lucide-react";
 export default function SignInForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const { mutate: signInWithPassword, isPending: isSignInWithPasswordPending } =
-    useSignInWithPassowrd({
+    useSignInWithPassword({
+      onSuccess: () => {
+        router.replace("/");
+        router.refresh();
+      },
       onError: (error) => {
         const message = generateErrorMessage(error);
         toast.error(message, {
@@ -26,7 +32,7 @@ export default function SignInForm() {
     });
 
   const { mutate: signInWithOAuth, isPending: isSignInWithOAuthPending } =
-    useSignInwithOAuth({
+    useSignInWithOAuth({
       onError: (error) => {
         const message = generateErrorMessage(error);
         toast.error(message, { position: "top-center" });

@@ -7,6 +7,7 @@ interface ProductActionSectionProps {
   isMyProduct: boolean;
   isLiked: boolean;
   status: ProductStatus;
+  isViewerPending?: boolean;
   isPending?: boolean;
   onLike: () => void;
   onChat: () => void;
@@ -20,6 +21,7 @@ export default function ProductActionSection({
   isMyProduct,
   isLiked,
   status,
+  isViewerPending = false,
   isPending = false,
   onLike,
   onChat,
@@ -32,6 +34,15 @@ export default function ProductActionSection({
   const wrapperClassName = isMobile
     ? "flex justify-center gap-3"
     : "hidden md:flex gap-3 mt-8";
+
+  // viewer 확인 전에는 비회원용 액션을 노출하지 않고 기존 버튼 영역의 크기만 유지합니다.
+  if (isViewerPending) {
+    return (
+      <div className={wrapperClassName} aria-busy="true" aria-label="사용자 확인 중">
+        <div className="h-10 flex-1 animate-pulse rounded-md bg-gray-100" />
+      </div>
+    );
+  }
 
   if (isMyProduct) {
     return (
