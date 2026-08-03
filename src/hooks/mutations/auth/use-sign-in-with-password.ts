@@ -14,8 +14,7 @@ export function useSignInWithPassword(callbacks?: useMutationCallback) {
       callbacks?.onSuccess?.();
     },
     onError: (error) => {
-      console.error(error);
-
+      // 잘못된 자격 증명은 예상 가능한 사용자 입력 오류이므로 개발 오류로 다시 출력하지 않습니다.
       if (callbacks?.onError) callbacks.onError(error);
     },
   });
